@@ -1,0 +1,72 @@
+#' Set of transcripts of interest from GSE227750
+#'
+#' Set of filtered transcripts of interest from GSE227750 from selected 
+#' protein-coding genes of reference chromosomes from basic Gencode M35 mouse
+#' annotation
+#'
+#' @docType data
+#'
+#' @usage data(GSE227750)
+#'
+#' @format data.frame
+#'
+#' @keywords datasets
+#'
+#' @references Milevskiy MJG, Coughlan HD, Kane SR, Johanson TM et al. Three-dimensional genome architecture coordinates key regulators of lineage specification in mammary epithelial cells. Cell Genom 2023 Nov 8;3(11):100424. PMID: 38020976
+#'
+#' @source \href{https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227750}{NCBI}
+#'
+#' @examples
+#' \dontrun{
+#' library(Rsubread) #. v2.18.0
+#' library(limma) #. v3.60.0
+#' library(data.table) #. v1.15.4
+#' library(stringi) #. v1.8.3
+#' library(devtools) #. v2.4.5
+#' load_all()
+#' 
+#' #. Reading GSE227750 quantification
+#' #. (see rfun::catchSalmon2, which brings in the TPM values from Salmon)
+#' edger.catch <- catchSalmon2(list.dirs('../../output/mouse/salmon/',recursive = FALSE))
+#' colnames(edger.catch$counts) <- basename(colnames(edger.catch$counts))
+#' colnames(edger.catch$tpm) <- basename(colnames(edger.catch$tpm))
+#' 
+#' #. Reading transcriptome and getting transcript duplicate information
+#' contigs <- scanFasta('../../data/annotation/mm39/gencode.vM35.transcripts.fa.gz')
+#' tx.info <- strsplit2(contigs$TranscriptID,"\\|")
+#' contigs[,c('TranscriptID','GeneID','TranscriptType')] <- tx.info[,c(1,2,8)]
+#' 
+#' #. Selecting genes of interest (see ?baselineAbundance_function) and 
+#' #. filtering their associated (unique) transcripts of interest. Genes of 
+#' #. interest are protein-coding and lncRNA genes from reference chromosomes with 
+#' #. expected CPM>1 in at least 6 out of the 9 libraries in GSE227750. Transcripts
+#' #. of interest are those protein-coding and lncRNA transcripts from the selected 
+#' #. genes.
+#' data("baselineAbundance_genes")
+#' is.relev.transcript <- 
+#'   (contigs$Unique == TRUE & 
+#'      contigs$TranscriptType %in% c('protein_coding','lncRNA') &
+#'      contigs$GeneID %in% baselineAbundance_genes)
+#' 
+#' contigs.sub <- contigs[is.relev.transcript, ]
+#' 
+#' #. Ranking filtered transcripts based on Salmon's TPM
+#' mat.tpm <- edger.catch$tpm[match(contigs.sub$TranscriptID,rownames(edger.catch$tpm)),]
+#' 
+#' dt.tpm <- data.table(TranscriptID = contigs.sub$TranscriptID,
+#'                      GeneID = contigs.sub$GeneID,
+#'                      TPM = mat.tpm)
+#' 
+#' dt.tpm$aveTPM <- exp(rowMeans(log1p(dt.tpm[,paste0('TPM.',colnames(edger.catch$tpm)),with = FALSE]))) - 1
+#' dt.tpm$aveTPM <- 1e6*dt.tpm$aveTPM/sum(dt.tpm$aveTPM)
+#' 
+#' dt.tpm[order(-aveTPM),Rank := seq_len(.N),by = 'GeneID']
+#' 
+#' #. Bringing rankings back to the annotation and saving data
+#' contigs.sub$Rank <- dt.tpm$Rank[match(contigs.sub$TranscriptID,dt.tpm$TranscriptID)]
+#' GSE227750 <- contigs.sub[order(contigs.sub$GeneID,contigs.sub$Rank),]
+#' rownames(GSE227750) <- NULL
+#' save(GSE227750,file = 'data/GSE227750.rda',compress = 'xz')
+
+#'  }
+"GSE227750"
