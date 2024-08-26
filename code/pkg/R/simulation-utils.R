@@ -42,7 +42,7 @@ getCounts <- function(targets,
     } else{
       targets$files <- file.path(targets$path,'quant.sf')
     }
-    cts <- tximeta(coldata = targets,type = quantifier, txOut = TRUE,countsFromAbundance = count.type,tx2gene = tx.gene)
+    cts <- tximeta(coldata = targets,type = quantifier,countsFromAbundance = count.type,tx2gene = tx.gene,ignoreAfterBar = TRUE,txOut = TRUE)
   }
   return(cts)
 }
