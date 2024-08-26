@@ -54,12 +54,12 @@ methodsNames <- function(){
   c4 <- c(0,0.25,0.75,1)
   c3 <- c(0,0.5,1)
 
-  color <- c(colramp(c4,c("black", "lightgray")),
+  color <- c(colramp(c4,c("orange", "lightgoldenrod")),
              colramp(c4,c("red", "lightsalmon")),
              colramp(c4,c("blue", "lightblue")),
              colramp(c3,c("green3", "lightgreen")),
              colramp(c3,c("purple", "lightpink")),
-             colramp(c3,c("orange", "lightgoldenrod")))
+             colramp(c3,c("black", "lightgray")))
 
   names(method) <- names(color) <- labels
   return(list(labels = labels,method = method,color = color))
@@ -383,14 +383,20 @@ computeGeneFDRCurve <- function(x,simulation,features,fdr,seq.n){
   tb.DE <- merge(features,truth.DE,by = 'GeneID',all.x = TRUE)
   tb.DE[is.na(GeneStatus),GeneStatus := 0]
   tb.DE[, GeneStatus := abs(GeneStatus)]
+  
+  if(grepl("edgeR|limma|DRIMSeq",x$Method)){
+    ranking.variable <- x$PValue
+  } else{
+    ranking.variable <- x$FDR
+  }
 
-  feature.DE <- data.table(GeneID = x$GeneID,FDR = x$FDR,call = 1)
+  feature.DE <- data.table(GeneID = x$GeneID,RankingVar = ranking.variable,call = 1)
 
   tb.DE <- merge(tb.DE,feature.DE,by = 'GeneID',all.x = TRUE)
   tb.DE[is.na(call),call := 0]
   tb.DE$GeneStatus <- factor(tb.DE$GeneStatus,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
-  tb.DE <- tb.DE[order(FDR),]
+  tb.DE <- tb.DE[order(RankingVar),]
 
   out <- lapply(seq.n,function(w){
     tb.results <- tb.DE[seq(1,w),][,table(GeneStatus,call)]
@@ -412,14 +418,20 @@ computeTranscriptFDRCurve <- function(x,simulation,features,fdr,seq.n){
   tb.DE <- merge(features,truth.DE,by = 'TranscriptID',all.x = TRUE)
   tb.DE[is.na(TranscriptStatus),TranscriptStatus := 0]
   tb.DE[, TranscriptStatus := abs(TranscriptStatus)]
+  
+  if(grepl("edgeR|limma|DRIMSeq",x$Method)){
+    ranking.variable <- x$PValue
+  } else{
+    ranking.variable <- x$FDR
+  }
 
-  feature.DE <- data.table(TranscriptID = x$TranscriptID,FDR = x$FDR,call = 1)
+  feature.DE <- data.table(TranscriptID = x$TranscriptID,RankingVar = ranking.variable,call = 1)
 
   tb.DE <- merge(tb.DE,feature.DE,by = 'TranscriptID',all.x = TRUE)
   tb.DE[is.na(call),call := 0]
   tb.DE$TranscriptStatus <- factor(tb.DE$TranscriptStatus,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
-  tb.DE <- tb.DE[order(FDR),]
+  tb.DE <- tb.DE[order(RankingVar),]
 
   out <- lapply(seq.n,function(w){
     tb.results <- tb.DE[seq(1,w),][,table(TranscriptStatus,call)]
@@ -666,10 +678,9 @@ summarizeQQ <- function(x,byvar,step = 0.001){
 
   sub.byvar <- byvar[!grepl('Simulation',byvar)]
 
-  # Only DEXSeq has NA p-values because it does not output raw gene-level
-  # p-values and NAs have been explicitly set for those.
-  # P-values from all other methods, including DRIMSeq, should not contain any NAs
-  if(x[!grepl("DEXSeq",Method),any(is.na(PValue))]) stop('NA p-values')
+  # Only DEXSeq and satuRn have NA p-values: they do not output raw gene-level
+  # p-values and NAs have been explicitly set for those
+  if(x[!grepl("DEXSeq|satuRn",Method),any(is.na(PValue))]) stop('NA p-values')
 
   x.quant <- x[, list(q.sample = quantile(PValue,probs = seq(0,1,length.out = .N),na.rm = TRUE),
                       q.theory = seq(0,1,length.out = .N)),by = byvar]
