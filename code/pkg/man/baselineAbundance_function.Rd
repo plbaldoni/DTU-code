@@ -42,8 +42,6 @@ gtf <- import('../../data/annotation/mm39/gencode.vM35.annotation.gtf.gz')
 gtf.tx <- gtf[gtf$type == 'transcript']
 tx2gene <- data.frame(tx = gtf.tx$transcript_id,gene = gtf.tx$gene_id)
 
-#' gene_ids <- select(edb,ensid,c("TXIDVERSION","GENEBIOTYPE","GENEIDVERSION","SEQNAME"))
-
 #. Loading quantifications
 files.quant <- list.files('../../output/mouse/salmon','quant.sf',recursive = TRUE,full.names = TRUE)
 names(files.quant) <- basename(dirname(files.quant))
