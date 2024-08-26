@@ -22,8 +22,11 @@ print(tmpdir)
 
 devtools::load_all(file.path(projdir,"code/pkg"))
 
+bin.salmon <- "/stornext/System/data/software/rhel/9/base/bioinf/salmon/1.10.2/bin/salmon"
+
 if (genome == 'mm39') {
-  fasta <- file.path(projdir,'data/annotation/mm39/gencode.vM27.transcripts.fa.gz')
+  fasta <- file.path(projdir,'data/annotation/mm39/gencode.vM35.transcripts.fa.gz')
+  index.salmon <- file.path(projdir,'output/mouse/salmon-index/transcripts_index')
 } else {
   stop('only simulations for mm39 were run')
 }
@@ -59,7 +62,5 @@ simulateExperiment(dest = dest,
                    read.length = read.length,
                    num.DE = c('DGE' = 1500,'DTU' = 1500, 'DGE/DTU' = 1500),
                    seed = seed,
-                   bin.salmon = "/stornext/General/data/academic/lab_smyth/baldoni.p/software/salmon-1.10.0_linux_x86_64/bin/salmon",
-                   index.salmon = "/stornext/General/data/academic/lab_smyth/baldoni.p/software/SalmonIndex/mm39-M27/transcripts_index",
-                   bin.kallisto = "/stornext/General/data/academic/lab_smyth/baldoni.p/software/kallisto/kallisto",
-                   index.kallisto = "/stornext/General/data/academic/lab_smyth/baldoni.p/software/kallistoIndex/mm39/transcripts_index")
+                   bin.salmon = bin.salmon,
+                   index.salmon = index.salmon)
