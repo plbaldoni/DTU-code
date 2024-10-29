@@ -119,7 +119,7 @@ loadResults <- function(path,genome,len,fc,read,scenario,libs.per.group,simulati
   return(out)
 }
 
-loadMetadata <- function(path,genome,len,fc,read,scenario,libs.per.group,simulation){
+loadMetadata <- function(path,genome,len,fc,read,scenario,libs.per.group,simulation,dtu.type){
   path.gene.status <- file.path(path,'gene.status.tsv.gz')
   path.transcript.status <- file.path(path,'transcript.status.tsv.gz')
   path.counts <- file.path(path,'counts.tsv.gz')
@@ -132,37 +132,45 @@ loadMetadata <- function(path,genome,len,fc,read,scenario,libs.per.group,simulat
                             'LibsPerGroup' = libs.per.group,
                             'Simulation' = simulation)
 
-  dt.gene.metadata <- fread(path.gene.status,header = TRUE)
-  dt.transcript.metadata <- fread(path.transcript.status,header = TRUE)
+  dt.gene.metadata <- cbind(dt.scenario,fread(path.gene.status,header = TRUE))
+  dt.transcript.metadata <- cbind(dt.scenario,fread(path.transcript.status,header = TRUE))
   dt.counts <- fread(path.counts,select = c('TranscriptID','GeneID'),header = TRUE)
 
-  dt.gene <- dt.gene.metadata[,c('GeneID')]
-  dt.transcript <- dt.transcript.metadata[,c('TranscriptID')]
+  # Setting DTU genes
+  dt.gene.metadata$DTU <- 1*(dt.gene.metadata$GeneStatus %in% c("DGE/DTU","DTU"))
 
-  dt.gene.sim <- cbind(dt.scenario,dt.gene.metadata[dt.gene.metadata$GeneStatus %in% c("DGE/DTU","DTU"), 'GeneID'])
+  # Setting DTU transcripts
+  tx.from.dtu.genes <- dt.counts[GeneID %in% dt.gene.metadata[DTU == 1,GeneID],TranscriptID]
 
-  is.dtu.transcript <- dt.transcript.metadata$TranscriptStatus %in% c(-1,1) &
-    dt.transcript.metadata$TranscriptID %in% dt.counts[GeneID %in% dt.gene.sim$GeneID,TranscriptID]
-  dt.transcript.sim <- cbind(dt.scenario,dt.transcript.metadata[is.dtu.transcript,])
+  dt.transcript.metadata[!is.na(TranscriptStatus), TranscriptType := "Null"]
+  dt.transcript.metadata[TranscriptID %in% tx.from.dtu.genes,TranscriptType := "Secondary"]
+  dt.transcript.metadata[TranscriptID %in% tx.from.dtu.genes & TranscriptStatus %in% c(-1,1),TranscriptType := "Primary"]
+
+  is.dtu.transcript <- dt.transcript.metadata$TranscriptID %in% tx.from.dtu.genes
+  if(!dtu.type %in% c('strict','complete')) stop("Incorrect dtu.type")
+  if(dtu.type == 'strict'){
+    # Selects only manipulated transcripts from genes "DGE/DTU" (1 transcript/gene) or "DTU" (2 transcripts/gene)
+    is.dtu.transcript <- (dt.transcript.metadata$TranscriptStatus %in% c(-1,1)) & is.dtu.transcript
+  }
+  dt.transcript.metadata$DTU <- 1*is.dtu.transcript
 
   # If fold-change = 1, status should be 0
   if (fc == 'fc1') {
-    dt.gene.sim$GeneStatus <- 0L
-    dt.transcript.sim$TranscriptStatus <- 0L
-  } else{
-    dt.gene.sim$GeneStatus <- 1L
-    dt.transcript.sim$TranscriptStatus <- 1L
-  }
+    dt.gene.metadata[GeneStatus %in% c('DGE','DGE/DTU','DTU'),GeneStatus := 'Null']
+    dt.gene.metadata$DTU <- 0L
 
-  out <- list('simulation.gene' = dt.gene.sim,
-              'simulation.transcript' = dt.transcript.sim,
-              'gene' = dt.gene,
-              'transcript' = dt.transcript)
+    dt.transcript.metadata[TranscriptStatus %in% c(-1,1),TranscriptStatus := 0L]
+    dt.transcript.metadata[TranscriptType %in% c("Primary","Secondary"),TranscriptType := "Null"]
+    dt.transcript.metadata$DTU <- 0L
+  }
+  out <- list('simulation.gene' = dt.gene.metadata,
+              'simulation.transcript' = dt.transcript.metadata,
+              'gene.transcript' = dt.counts)
 
   return(out)
 }
 
-aggregateScenario <- function(path,genome,len,fc,read,scenario,libs.per.group,quantifier,nsim){
+aggregateScenario <- function(path,genome,len,fc,read,scenario,libs.per.group,quantifier,nsim,dtu.type){
 
   subpath <- paste0('simulation-',seq_len(nsim))
 
@@ -173,7 +181,7 @@ aggregateScenario <- function(path,genome,len,fc,read,scenario,libs.per.group,qu
 
   ls.metadata <- lapply(seq_len(nsim),function(x){
     meta.path <- file.path(path,subpath[x],'meta')
-    loadMetadata(meta.path,genome,len,fc,read,scenario,libs.per.group,x)
+    loadMetadata(meta.path,genome,len,fc,read,scenario,libs.per.group,x,dtu.type)
   })
 
   dt.results.gene <- do.call(rbind,lapply(ls.results,function(x){x[['results.gene']]}))
@@ -181,17 +189,15 @@ aggregateScenario <- function(path,genome,len,fc,read,scenario,libs.per.group,qu
   dt.time <- as.data.table(do.call(rbind,lapply(ls.results,function(x){x[['time']]})))
   dt.simulation.gene <- do.call(rbind,lapply(ls.metadata,function(x){x[['simulation.gene']]}))
   dt.simulation.transcript <- do.call(rbind,lapply(ls.metadata,function(x){x[['simulation.transcript']]}))
-  dt.gene <- ls.metadata[[1]]$gene
-  dt.transcript <- ls.metadata[[1]]$transcript
+  dt.gene.transcript <- ls.metadata[[1]]$gene.transcript
 
   out <- list('results.gene' = dt.results.gene,'results.transcript' = dt.results.transcript,
               'simulation.gene' = dt.simulation.gene,'simulation.transcript' = dt.simulation.transcript,
-              'features.gene' = dt.gene,'features.transcript' = dt.transcript,
-              'time' = dt.time)
+              'time' = dt.time,'gene.transcript' = dt.gene.transcript)
   return(out)
 }
 
-computeGeneMetrics <- function(x,simulation,features,fdr,alpha){
+computeGeneMetrics <- function(x,simulation,fdr,alpha){
 
   GeneID.DE <- x$GeneID[x$FDR < fdr]
   n <- length(x$GeneID)
@@ -202,19 +208,29 @@ computeGeneMetrics <- function(x,simulation,features,fdr,alpha){
   truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
                            Reads == x$Reads &
                            Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
-                           Simulation == x$Simulation, c('GeneID','GeneStatus')]
+                           Simulation == x$Simulation, c('GeneID','GeneStatus','DTU')]
 
-  tb.DE <- merge(features,truth.DE,by = 'GeneID',all.x = TRUE)
-  tb.DE <- merge(tb.DE,call.DE,by = 'GeneID',all.x = TRUE)
+  tb.DE <- merge(truth.DE,call.DE,by = 'GeneID',all.x = TRUE)
 
-  tb.DE[is.na(GeneStatus),GeneStatus := 0]
-  tb.DE[, GeneStatus := abs(GeneStatus)]
+  tb.DE[is.na(GeneStatus),GeneStatus := 'Null']
   tb.DE[is.na(call),call := 0]
 
-  tb.DE$GeneStatus <- factor(tb.DE$GeneStatus,levels = c(0,1))
+  tb.DE$DTU <- factor(tb.DE$DTU,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
 
-  tb.results <- tb.DE[,table(GeneStatus,call)]
+  tb.results <- tb.DE[,table(DTU,call)]
+  tb.results.bystatus <- tb.DE[,table(DTU,call,GeneStatus)]
+
+  is.null <- !any(grepl("DTU",truth.DE$GeneStatus))
+  FP.Null <- tb.results.bystatus["0","1","Null"]
+  if(is.null){
+    TP.DTU <- TP.DGEDTU <- FP.DGE <- 0L
+  } else{
+    TP.DTU <- tb.results.bystatus["1","1","DTU"]
+    TP.DGEDTU <- tb.results.bystatus["1","1","DGE/DTU"]
+    FP.DGE <- tb.results.bystatus["0","1","DGE"]
+  }
+
 
   total.call <- sum(tb.results[,"1"])
   total.de <- sum(tb.results["1",])
@@ -225,32 +241,36 @@ computeGeneMetrics <- function(x,simulation,features,fdr,alpha){
               'FP' = tb.results["0","1"],
               'FPR' = tb.results["0","1"]/sum(tb.results["0",]),
               'FDR' = ifelse(total.call == 0,NA,tb.results["0","1"]/total.call),
-              'TPR' = ifelse(total.de == 0,NA,tb.results["1","1"]/total.de))
+              'TPR' = ifelse(total.de == 0,NA,tb.results["1","1"]/total.de),
+              "TP.DTU" = TP.DTU,
+              "TP.DGEDTU" = TP.DGEDTU,
+              "FP.DGE" = FP.DGE,
+              "FP.Null" = FP.Null)
 
   return(lapply(out,as.double))
 }
 
-computeGeneROCCurve <- function(x,simulation,features,fdr,seq.fdr){
+computeGeneROCCurve <- function(x,simulation,fdr,seq.fdr){
+  
   truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
                            Reads == x$Reads &
                            Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
-                           Simulation == x$Simulation, c('GeneID','GeneStatus')]
-  tb.DE <- merge(features,truth.DE,by = 'GeneID',all.x = TRUE)
-  tb.DE[is.na(GeneStatus),GeneStatus := 0]
-  tb.DE[, GeneStatus := abs(GeneStatus)]
+                           Simulation == x$Simulation, c('GeneID','GeneStatus','DTU')]
+
+  truth.DE[is.na(GeneStatus),GeneStatus := "Null"]
 
   feature.DE <- data.table(GeneID = x$GeneID,FDR = x$FDR)
 
-  tb.DE <- merge(tb.DE,feature.DE,by = 'GeneID',all.x = TRUE)
+  tb.DE <- merge(truth.DE,feature.DE,by = 'GeneID',all.x = TRUE)
   tb.DE[,call := 0]
-  tb.DE$GeneStatus <- factor(tb.DE$GeneStatus,levels = c(0,1))
+  tb.DE$DTU <- factor(tb.DE$DTU,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
   tb.DE[is.na(FDR),FDR := 1]
 
   out <- lapply(seq.fdr,function(w){
     tb.results <- copy(tb.DE)
     tb.results[FDR < w/100, call := "1"]
-    tb.results <- tb.results[,table(GeneStatus,call)]
+    tb.results <- tb.results[,table(DTU,call)]
 
     num.de <- sum(tb.results[2,])
     num.call <- sum(tb.results[,2])
@@ -281,28 +301,28 @@ computeGeneROCCurve <- function(x,simulation,features,fdr,seq.fdr){
   return(c(out.tpr,out.fdr))
 }
 
-computeTranscriptROCCurve <- function(x,simulation,features,fdr,seq.fdr){
+computeTranscriptROCCurve <- function(x,simulation,fdr,seq.fdr){
+
   truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
                            Reads == x$Reads &
                            Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
-                           Simulation == x$Simulation, c('TranscriptID','TranscriptStatus')]
+                           Simulation == x$Simulation, c('TranscriptID','TranscriptStatus','TranscriptType','DTU')]
 
-  tb.DE <- merge(features,truth.DE,by = 'TranscriptID',all.x = TRUE)
-  tb.DE[is.na(TranscriptStatus),TranscriptStatus := 0]
-  tb.DE[, TranscriptStatus := abs(TranscriptStatus)]
+  truth.DE[is.na(TranscriptStatus),TranscriptStatus := 0]
+  truth.DE[is.na(TranscriptType),TranscriptType := "Null"]
 
   feature.DE <- data.table(TranscriptID = x$TranscriptID,FDR = x$FDR)
 
-  tb.DE <- merge(tb.DE,feature.DE,by = 'TranscriptID',all.x = TRUE)
+  tb.DE <- merge(truth.DE,feature.DE,by = 'TranscriptID',all.x = TRUE)
   tb.DE[,call := 0]
-  tb.DE$TranscriptStatus <- factor(tb.DE$TranscriptStatus,levels = c(0,1))
+  tb.DE$DTU <- factor(tb.DE$DTU,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
   tb.DE[is.na(FDR),FDR := 1]
 
   out <- lapply(seq.fdr,function(w){
     tb.results <- copy(tb.DE)
     tb.results[FDR < w/100, call := "1"]
-    tb.results <- tb.results[,table(TranscriptStatus,call)]
+    tb.results <- tb.results[,table(DTU,call)]
 
     num.call <- sum(tb.results[,2])
     num.de <- sum(tb.results[2,])
@@ -334,7 +354,27 @@ computeTranscriptROCCurve <- function(x,simulation,features,fdr,seq.fdr){
   return(c(out.tpr,out.fdr))
 }
 
-computeTranscriptMetrics <- function(x,simulation,features,fdr,alpha){
+checkSecondaryTranscripts <- function(call,transcript.type,gene.type){
+  n <- length(transcript.type)
+  gene.type <- unique(gene.type)
+  if(is.na(gene.type) | gene.type == "DGE") gene.type <- "Null"
+
+  n.tx <- 0L
+  if(!gene.type == 'Null'){
+    primary.sig <- (call[transcript.type == "Primary"] == "1")
+    dtu.missed <- (sum(primary.sig) < 2L) & (gene.type == 'DTU')
+    dgedtu.missed <- (sum(primary.sig) < 1L) & (gene.type == 'DGE/DTU')
+
+    if(dtu.missed | dgedtu.missed){
+      n.tx <- sum(call[transcript.type == "Secondary"] == "1")
+    }
+  } else{
+    n.tx <- sum(call == '1')
+  }
+  return(n.tx)
+}
+
+computeTranscriptMetrics <- function(x,simulation.transcript,simulation.gene,fdr,alpha,gene.transcript){
 
   TranscriptID.DE <- x$TranscriptID[x$FDR < fdr]
   n <- length(x$TranscriptID)
@@ -342,22 +382,32 @@ computeTranscriptMetrics <- function(x,simulation,features,fdr,alpha){
 
   call.DE <- data.table(TranscriptID = TranscriptID.DE,call = 1)
 
-  truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
-                           Reads == x$Reads &
-                           Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
-                           Simulation == x$Simulation, c('TranscriptID','TranscriptStatus')]
+  truth.DE <- simulation.transcript[Genome == x$Genome & Length == x$Length & FC == x$FC &
+                                      Reads == x$Reads &
+                                      Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
+                                      Simulation == x$Simulation,
+                                    c('TranscriptID','TranscriptStatus','TranscriptType','DTU')]
 
-  tb.DE <- merge(features,truth.DE,by = 'TranscriptID',all.x = TRUE)
-  tb.DE <- merge(tb.DE,call.DE,by = 'TranscriptID',all.x = TRUE)
+  truth.gene.DE <- simulation.gene[Genome == x$Genome & Length == x$Length & FC == x$FC &
+                                     Reads == x$Reads &
+                                     Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
+                                     Simulation == x$Simulation,
+                                   c('GeneID','GeneStatus','DTU')]
 
-  tb.DE[is.na(TranscriptStatus),TranscriptStatus := 0]
-  tb.DE[, TranscriptStatus := abs(TranscriptStatus)]
+  tb.DE <- merge(truth.DE,call.DE,by = 'TranscriptID',all.x = TRUE)
+  tb.DE$GeneID <- gene.transcript$GeneID[match(tb.DE$TranscriptID,gene.transcript$TranscriptID)]
+  tb.DE$GeneStatus <- truth.gene.DE$GeneStatus[match(tb.DE$GeneID,truth.gene.DE$GeneID)]
+
   tb.DE[is.na(call),call := 0]
+  tb.DE[is.na(TranscriptType),TranscriptType := "Null"]
 
-  tb.DE$TranscriptStatus <- factor(tb.DE$TranscriptStatus,levels = c(0,1))
+  tb.DE$DTU <- factor(tb.DE$DTU,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
 
-  tb.results <- tb.DE[,table(TranscriptStatus,call)]
+  tb.FD <- tb.DE[,.(FP.SECONDARY = checkSecondaryTranscripts(call,TranscriptType,GeneStatus)),by = 'GeneID']
+  FP.SECONDARY <- sum(tb.FD$FP.SECONDARY)
+
+  tb.results <- tb.DE[,table(DTU,call)]
 
   total.call <- sum(tb.results[,"1"])
   total.de <- sum(tb.results["1",])
@@ -368,22 +418,21 @@ computeTranscriptMetrics <- function(x,simulation,features,fdr,alpha){
               'FP' = tb.results["0","1"],
               'FPR' = tb.results["0","1"]/sum(tb.results["0",]),
               'FDR' = ifelse(total.call == 0,NA,tb.results["0","1"]/total.call),
-              'TPR' = ifelse(total.de == 0,NA,tb.results["1","1"]/total.de))
+              'TPR' = ifelse(total.de == 0,NA,tb.results["1","1"]/total.de),
+              'FP.SECONDARY' = FP.SECONDARY)
 
   return(lapply(out,as.double))
 }
 
-computeGeneFDRCurve <- function(x,simulation,features,fdr,seq.n){
+computeGeneFDRCurve <- function(x,simulation,fdr,seq.n){
 
   truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
                            Reads == x$Reads &
                            Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
-                           Simulation == x$Simulation, c('GeneID','GeneStatus')]
+                           Simulation == x$Simulation, c('GeneID','GeneStatus','DTU')]
 
-  tb.DE <- merge(features,truth.DE,by = 'GeneID',all.x = TRUE)
-  tb.DE[is.na(GeneStatus),GeneStatus := 0]
-  tb.DE[, GeneStatus := abs(GeneStatus)]
-  
+  truth.DE[is.na(GeneStatus),GeneStatus := "Null"]
+
   if(grepl("edgeR|limma|DRIMSeq",x$Method)){
     ranking.variable <- x$PValue
   } else{
@@ -392,14 +441,14 @@ computeGeneFDRCurve <- function(x,simulation,features,fdr,seq.n){
 
   feature.DE <- data.table(GeneID = x$GeneID,RankingVar = ranking.variable,call = 1)
 
-  tb.DE <- merge(tb.DE,feature.DE,by = 'GeneID',all.x = TRUE)
+  tb.DE <- merge(truth.DE,feature.DE,by = 'GeneID',all.x = TRUE)
   tb.DE[is.na(call),call := 0]
-  tb.DE$GeneStatus <- factor(tb.DE$GeneStatus,levels = c(0,1))
+  tb.DE$DTU <- factor(tb.DE$DTU,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
   tb.DE <- tb.DE[order(RankingVar),]
 
   out <- lapply(seq.n,function(w){
-    tb.results <- tb.DE[seq(1,w),][,table(GeneStatus,call)]
+    tb.results <- tb.DE[seq(1,w),][,table(DTU,call)]
     return(tb.results["0","1"])
   })
 
@@ -408,17 +457,16 @@ computeGeneFDRCurve <- function(x,simulation,features,fdr,seq.n){
   return(out)
 }
 
-computeTranscriptFDRCurve <- function(x,simulation,features,fdr,seq.n){
+computeTranscriptFDRCurve <- function(x,simulation,fdr,seq.n){
 
   truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
                            Reads == x$Reads &
                            Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
-                           Simulation == x$Simulation, c('TranscriptID','TranscriptStatus')]
+                           Simulation == x$Simulation, c('TranscriptID','TranscriptStatus',"TranscriptType","DTU")]
 
-  tb.DE <- merge(features,truth.DE,by = 'TranscriptID',all.x = TRUE)
-  tb.DE[is.na(TranscriptStatus),TranscriptStatus := 0]
-  tb.DE[, TranscriptStatus := abs(TranscriptStatus)]
-  
+  truth.DE[is.na(TranscriptStatus),TranscriptStatus := 0]
+  truth.DE[is.na(TranscriptType),TranscriptType := "Null"]
+
   if(grepl("edgeR|limma|DRIMSeq",x$Method)){
     ranking.variable <- x$PValue
   } else{
@@ -427,14 +475,14 @@ computeTranscriptFDRCurve <- function(x,simulation,features,fdr,seq.n){
 
   feature.DE <- data.table(TranscriptID = x$TranscriptID,RankingVar = ranking.variable,call = 1)
 
-  tb.DE <- merge(tb.DE,feature.DE,by = 'TranscriptID',all.x = TRUE)
+  tb.DE <- merge(truth.DE,feature.DE,by = 'TranscriptID',all.x = TRUE)
   tb.DE[is.na(call),call := 0]
-  tb.DE$TranscriptStatus <- factor(tb.DE$TranscriptStatus,levels = c(0,1))
+  tb.DE$DTU <- factor(tb.DE$DTU,levels = c(0,1))
   tb.DE$call <- factor(tb.DE$call,levels = c(0,1))
   tb.DE <- tb.DE[order(RankingVar),]
 
   out <- lapply(seq.n,function(w){
-    tb.results <- tb.DE[seq(1,w),][,table(TranscriptStatus,call)]
+    tb.results <- tb.DE[seq(1,w),][,table(DTU,call)]
     return(tb.results["0","1"])
   })
 
@@ -656,11 +704,28 @@ summarizeFDRCurve <- function(x,byvar){
   return(table)
 }
 
-summarizeMetrics <- function(x,byvar){
+summarizeMetrics <- function(x,byvar,type){
 
   sub.byvar <- byvar[!grepl('Simulation',byvar)]
 
-  table <- x[,.(P.SIG = mean(N.ALPHA/N),TP = mean(TP),FP = mean(FP)),sub.byvar]
+  if(type == 'gene'){
+    table <- x[,.(P.SIG = mean(N.ALPHA/N),
+                  TP = mean(TP),
+                  FP = mean(FP),
+                  TP.DTU = mean(TP.DTU),
+                  TP.DGEDTU = mean(TP.DGEDTU),
+                  FP.DGE = mean(FP.DGE),
+                  FP.Null = mean(FP.Null)),sub.byvar]
+  }
+
+  if(type == 'transcript'){
+    table <- x[,.(P.SIG = mean(N.ALPHA/N),
+                  TP = mean(TP),
+                  FP = mean(FP),
+                  FP.SECONDARY = mean(FP.SECONDARY)),sub.byvar]
+  }
+
+
 
   return(table)
 }
@@ -879,24 +944,26 @@ summarizeROCCurve <- function(x,byvar){
 #' @importFrom data.table fwrite
 summarizeQuantification <- function(path,dest,genome,fc,read,len,
                                     scenario,libs.per.group,quantifier,
-                                    nsim = 20, fdr = 0.05, seq.n.gene = seq(100,3000,100),seq.n.transcript = seq(100,4500,100),seq.fdr = c(1,5,10,15,20),alpha = fdr){
+                                    nsim = 20, fdr = 0.05, seq.n.gene = seq(100,3000,100),
+                                    seq.n.transcript = seq(100,4500,100),seq.fdr = c(1,5,10,15,20),
+                                    alpha = 0.05,dtu.type = 'complete'){
 
   byvar <- c('Genome','Length','FC','Reads','Scenario','LibsPerGroup','Quantifier','Method','Simulation')
 
-  res <- aggregateScenario(path = path, genome = genome, len = len, fc = fc , read = read, scenario = scenario, libs.per.group = libs.per.group, quantifier = quantifier, nsim = nsim)
+  res <- aggregateScenario(path = path, genome = genome, len = len, fc = fc , read = read, scenario = scenario, libs.per.group = libs.per.group, quantifier = quantifier, nsim = nsim,dtu.type = dtu.type)
 
-  table.gene.metrics <- res$results.gene[,computeGeneMetrics(c(.BY,.SD),simulation = res$simulation.gene,features = res$features.gene,fdr = fdr,alpha = alpha),by = byvar]
-  table.transcript.metrics <- res$results.transcript[,computeTranscriptMetrics(c(.BY,.SD),simulation = res$simulation.transcript,features = res$features.transcript,fdr = fdr,alpha = alpha),by = byvar]
+  table.gene.metrics <- res$results.gene[,computeGeneMetrics(c(.BY,.SD),simulation = res$simulation.gene,fdr = fdr,alpha = alpha),by = byvar]
+  table.transcript.metrics <- res$results.transcript[,computeTranscriptMetrics(c(.BY,.SD),simulation.transcript = res$simulation.transcript,simulation.gene = res$simulation.gene,fdr = fdr,alpha = alpha,gene.transcript = res$gene.transcript),by = byvar]
 
-  table.gene.fdr <- res$results.gene[,computeGeneFDRCurve(c(.BY,.SD),simulation = res$simulation.gene,features = res$features.gene,fdr = fdr,seq.n = seq.n.gene),by = byvar]
-  table.transcript.fdr <- res$results.transcript[,computeTranscriptFDRCurve(c(.BY,.SD),simulation = res$simulation.transcript,features = res$features.transcript,fdr = fdr,seq.n = seq.n.transcript),by = byvar]
+  table.gene.fdr <- res$results.gene[,computeGeneFDRCurve(c(.BY,.SD),simulation = res$simulation.gene,fdr = fdr,seq.n = seq.n.gene),by = byvar]
+  table.transcript.fdr <- res$results.transcript[,computeTranscriptFDRCurve(c(.BY,.SD),simulation = res$simulation.transcript,fdr = fdr,seq.n = seq.n.transcript),by = byvar]
 
-  table.gene.roc <- res$results.gene[,computeGeneROCCurve(c(.BY,.SD),simulation = res$simulation.gene,features = res$features.gene,fdr = fdr,seq.fdr = seq.fdr),by = byvar]
-  table.transcript.roc <- res$results.transcript[,computeTranscriptROCCurve(c(.BY,.SD),simulation = res$simulation.transcript,features = res$features.transcript,fdr = fdr,seq.fdr = seq.fdr),by = byvar]
+  table.gene.roc <- res$results.gene[,computeGeneROCCurve(c(.BY,.SD),simulation = res$simulation.gene,fdr = fdr,seq.fdr = seq.fdr),by = byvar]
+  table.transcript.roc <- res$results.transcript[,computeTranscriptROCCurve(c(.BY,.SD),simulation = res$simulation.transcript,fdr = fdr,seq.fdr = seq.fdr),by = byvar]
 
   out <- list('time' = summarizeTime(res$time,byvar),
-              'metrics.gene' = summarizeMetrics(table.gene.metrics,byvar),
-              'metrics.transcript' = summarizeMetrics(table.transcript.metrics,byvar),
+              'metrics.gene' = summarizeMetrics(table.gene.metrics,byvar,type = 'gene'),
+              'metrics.transcript' = summarizeMetrics(table.transcript.metrics,byvar,type = 'transcript'),
               'fdr.gene' = summarizeFDRCurve(table.gene.fdr,byvar),
               'fdr.transcript' = summarizeFDRCurve(table.transcript.fdr,byvar),
               'roc.gene' = summarizeROCCurve(table.gene.roc,byvar),
@@ -909,7 +976,7 @@ summarizeQuantification <- function(path,dest,genome,fc,read,len,
     out[['pvalue.gene']] = summarizePValue(res$results.gene,byvar)
     out[['pvalue.transcript']] = summarizePValue(res$results.transcript,byvar)
   }
-
+  
   # plotFDRCurve(out$fdr,max.n = max(seq.n))
   # plotPowerBars(out$metrics,fdr,max.n)
   # plotType1Error(out$metrics,alpha)
