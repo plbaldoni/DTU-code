@@ -9,7 +9,7 @@ dest.data <- '../../output/simulation/data'
 for (genome in c('mm39')) {
   for (len in c(100)) {
     for (fc in c(1,2)) {
-      for (scenario in c('balanced', 'unbalanced')) {
+      for (scenario in c('unbalanced')) {
         for (paired.end in c(TRUE)) {
           for (libs.per.group in c(3, 5, 10)) {
             for (simulation in 1:20) {
