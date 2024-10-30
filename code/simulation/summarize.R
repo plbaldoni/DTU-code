@@ -8,10 +8,9 @@ library(doParallel)
 
 load_all("../pkg")
 
-workers <- 12
-
-registerDoParallel(workers)
-BPPARAM <- DoparParam()
+workers <- 16
+BPPARAM <- MulticoreParam(workers = workers,progressbar = TRUE)
+register(BPPARAM)
 
 summarizeSimulation(path = '../../output/simulation/data/',
                     dest = '../../output/simulation/summary/',
