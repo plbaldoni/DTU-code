@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=tx-pipe
-#SBATCH --array=201-240
+#SBATCH --array=1-120
 #SBATCH --mem=66G
 #SBATCH --cpus-per-task=11
 #SBATCH --time=48:00:00
