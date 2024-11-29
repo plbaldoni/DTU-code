@@ -251,7 +251,7 @@ computeGeneMetrics <- function(x,simulation,fdr,alpha){
 }
 
 computeGeneROCCurve <- function(x,simulation,fdr,seq.fdr){
-  
+
   truth.DE <- simulation[Genome == x$Genome & Length == x$Length & FC == x$FC &
                            Reads == x$Reads &
                            Scenario == x$Scenario & LibsPerGroup == x$LibsPerGroup &
@@ -976,7 +976,7 @@ summarizeQuantification <- function(path,dest,genome,fc,read,len,
     out[['pvalue.gene']] = summarizePValue(res$results.gene,byvar)
     out[['pvalue.transcript']] = summarizePValue(res$results.transcript,byvar)
   }
-  
+
   # plotFDRCurve(out$fdr,max.n = max(seq.n))
   # plotPowerBars(out$metrics,fdr,max.n)
   # plotType1Error(out$metrics,alpha)
