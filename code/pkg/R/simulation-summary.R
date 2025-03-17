@@ -231,17 +231,25 @@ computeGeneMetrics <- function(x,simulation,fdr,alpha){
     FP.DGE <- tb.results.bystatus["0","1","DGE"]
   }
 
-
   total.call <- sum(tb.results[,"1"])
   total.de <- sum(tb.results["1",])
+
+  num.de <- sum(tb.results["1",])
+  num.call <- sum(tb.results[,"1"])
+  o <- c('TPR' = tb.results["1","1"]/num.de,'FDR' = tb.results["0","1"]/num.call)
+  if(num.de > 0 & num.call == 0) o['TPR'] <- o['FDR'] <- 0L
+  if(num.de == 0){
+    o['TPR'] <- 0L
+    o['FDR'] <- ifelse(num.call > 0,1L,0L)
+  }
 
   out <- list('N' = n,
               'N.ALPHA' = n.lt.alpha,
               'TP' = tb.results["1","1"],
               'FP' = tb.results["0","1"],
               'FPR' = tb.results["0","1"]/sum(tb.results["0",]),
-              'FDR' = ifelse(total.call == 0,NA,tb.results["0","1"]/total.call),
-              'TPR' = ifelse(total.de == 0,NA,tb.results["1","1"]/total.de),
+              'FDR' = o["FDR"],
+              'TPR' = o["TPR"],
               "TP.DTU" = TP.DTU,
               "TP.DGEDTU" = TP.DGEDTU,
               "FP.DGE" = FP.DGE,
@@ -275,22 +283,22 @@ computeGeneROCCurve <- function(x,simulation,fdr,seq.fdr){
     num.de <- sum(tb.results[2,])
     num.call <- sum(tb.results[,2])
 
-    return(c('TPR' = ifelse(num.de == 0,NA,tb.results[2,2]/sum(tb.results[2,])),
-             'FDR' = ifelse(num.call == 0,NA,tb.results[1,2]/sum(tb.results[,2]))))
-    # o <- c('TPR' = tb.results[2,2]/num.de,'FDR' = tb.results[1,2]/num.call)
-    #
-    # if(num.de > 0 & num.call == 0){
-    #   o['TPR'] <- o['FDR'] <- 0L
-    # }
-    # if(num.de == 0){
-    #   if(num.call > 0){
-    #     o['TPR'] <- 0
-    #     o['FDR'] <- 1L
-    #   } else{
-    #     o['TPR'] <- o['FDR'] <- 0L
-    #   }
-    # }
-    # return(o)
+    # return(c('TPR' = ifelse(num.de == 0,NA,tb.results[2,2]/sum(tb.results[2,])),
+    #          'FDR' = ifelse(num.call == 0,NA,tb.results[1,2]/sum(tb.results[,2]))))
+    o <- c('TPR' = tb.results[2,2]/num.de,'FDR' = tb.results[1,2]/num.call)
+
+    if(num.de > 0 & num.call == 0){
+      o['TPR'] <- o['FDR'] <- 0L
+    }
+    if(num.de == 0){
+      if(num.call > 0){
+        o['TPR'] <- 0
+        o['FDR'] <- 1L
+      } else{
+        o['TPR'] <- o['FDR'] <- 0L
+      }
+    }
+    return(o)
   })
 
   out.tpr <- lapply(out,function(x){as.numeric(x['TPR'])})
@@ -327,22 +335,22 @@ computeTranscriptROCCurve <- function(x,simulation,fdr,seq.fdr){
     num.call <- sum(tb.results[,2])
     num.de <- sum(tb.results[2,])
 
-    return(c('TPR' = ifelse(num.de == 0,NA,tb.results[2,2]/sum(tb.results[2,])),
-             'FDR' = ifelse(num.call == 0,NA,tb.results[1,2]/sum(tb.results[,2]))))
-    # o <- c('TPR' = tb.results[2,2]/num.de,'FDR' = tb.results[1,2]/num.call)
-    #
-    # if(num.de > 0 & num.call == 0){
-    #   o['TPR'] <- o['FDR'] <- 0L
-    # }
-    # if(num.de == 0){
-    #   if(num.call > 0){
-    #     o['TPR'] <- 0
-    #     o['FDR'] <- 1L
-    #   } else{
-    #     o['TPR'] <- o['FDR'] <- 0L
-    #   }
-    # }
-    # return(o)
+    # return(c('TPR' = ifelse(num.de == 0,NA,tb.results[2,2]/sum(tb.results[2,])),
+    #          'FDR' = ifelse(num.call == 0,NA,tb.results[1,2]/sum(tb.results[,2]))))
+    o <- c('TPR' = tb.results[2,2]/num.de,'FDR' = tb.results[1,2]/num.call)
+
+    if(num.de > 0 & num.call == 0){
+      o['TPR'] <- o['FDR'] <- 0L
+    }
+    if(num.de == 0){
+      if(num.call > 0){
+        o['TPR'] <- 0
+        o['FDR'] <- 1L
+      } else{
+        o['TPR'] <- o['FDR'] <- 0L
+      }
+    }
+    return(o)
   })
 
   out.tpr <- lapply(out,function(x){as.numeric(x['TPR'])})
@@ -412,13 +420,22 @@ computeTranscriptMetrics <- function(x,simulation.transcript,simulation.gene,fdr
   total.call <- sum(tb.results[,"1"])
   total.de <- sum(tb.results["1",])
 
+  num.de <- sum(tb.results["1",])
+  num.call <- sum(tb.results[,"1"])
+  o <- c('TPR' = tb.results["1","1"]/num.de,'FDR' = tb.results["0","1"]/num.call)
+  if(num.de > 0 & num.call == 0) o['TPR'] <- o['FDR'] <- 0L
+  if(num.de == 0){
+    o['TPR'] <- 0L
+    o['FDR'] <- ifelse(num.call > 0,1L,0L)
+  }
+
   out <- list('N' = n,
               'N.ALPHA' = n.lt.alpha,
               'TP' = tb.results["1","1"],
               'FP' = tb.results["0","1"],
               'FPR' = tb.results["0","1"]/sum(tb.results["0",]),
-              'FDR' = ifelse(total.call == 0,NA,tb.results["0","1"]/total.call),
-              'TPR' = ifelse(total.de == 0,NA,tb.results["1","1"]/total.de),
+              'FDR' = o['FDR'],
+              'TPR' = o['TPR'],
               'FP.SECONDARY' = FP.SECONDARY)
 
   return(lapply(out,as.double))
@@ -955,6 +972,9 @@ summarizeQuantification <- function(path,dest,genome,fc,read,len,
   table.gene.metrics <- res$results.gene[,computeGeneMetrics(c(.BY,.SD),simulation = res$simulation.gene,fdr = fdr,alpha = alpha),by = byvar]
   table.transcript.metrics <- res$results.transcript[,computeTranscriptMetrics(c(.BY,.SD),simulation.transcript = res$simulation.transcript,simulation.gene = res$simulation.gene,fdr = fdr,alpha = alpha,gene.transcript = res$gene.transcript),by = byvar]
 
+  table.gene.metrics.1pct <- res$results.gene[,computeGeneMetrics(c(.BY,.SD),simulation = res$simulation.gene,fdr = 0.01,alpha = 0.01),by = byvar]
+  table.transcript.metrics.1pct <- res$results.transcript[,computeTranscriptMetrics(c(.BY,.SD),simulation.transcript = res$simulation.transcript,simulation.gene = res$simulation.gene,fdr = 0.01,alpha = 0.01,gene.transcript = res$gene.transcript),by = byvar]
+
   table.gene.fdr <- res$results.gene[,computeGeneFDRCurve(c(.BY,.SD),simulation = res$simulation.gene,fdr = fdr,seq.n = seq.n.gene),by = byvar]
   table.transcript.fdr <- res$results.transcript[,computeTranscriptFDRCurve(c(.BY,.SD),simulation = res$simulation.transcript,fdr = fdr,seq.n = seq.n.transcript),by = byvar]
 
@@ -964,6 +984,8 @@ summarizeQuantification <- function(path,dest,genome,fc,read,len,
   out <- list('time' = summarizeTime(res$time,byvar),
               'metrics.gene' = summarizeMetrics(table.gene.metrics,byvar,type = 'gene'),
               'metrics.transcript' = summarizeMetrics(table.transcript.metrics,byvar,type = 'transcript'),
+              'metrics.gene.1pct' = summarizeMetrics(table.gene.metrics.1pct,byvar,type = 'gene'),
+              'metrics.transcript.1pct' = summarizeMetrics(table.transcript.metrics.1pct,byvar,type = 'transcript'),
               'fdr.gene' = summarizeFDRCurve(table.gene.fdr,byvar),
               'fdr.transcript' = summarizeFDRCurve(table.transcript.fdr,byvar),
               'roc.gene' = summarizeROCCurve(table.gene.roc,byvar),

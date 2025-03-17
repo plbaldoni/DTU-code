@@ -52,7 +52,7 @@ createDE <- function(Baseline,GeneStatus,fc){
   list(Baseline.G1 = b1, Baseline.G2 = b2,TranscriptStatus = TranscriptStatus)
 }
 
-simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv = 40, bcv.true = 0.2){
+simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend){
   # This function was written with the goal of mimicking the simulation setup
   # used in the voom paper. Specifically, we use goodTuringProportions to
   # estimate baseline abundances, different asymptotic BCV value as well as
@@ -104,7 +104,8 @@ simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv = 
   chisq <- do.call(cbind,chisq)
 
   # Biological variation and Dispersion trend
-  bcv0 <- bcv.true + 1/sqrt(mu0)
+  bcv0 <- bcv.true
+  if(isTRUE(bcv.trend)) bcv0 <- bcv0 + 1/sqrt(mu0)
   disp <- bcv0 ^ 2 * chisq
 
   # Biological variation
@@ -134,7 +135,7 @@ simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv = 
 #' @importFrom data.table setkey copy setnames
 simulateTPM <- function(contigs,contigs.subset,
                         n.libs,lib.sizes,
-                        num.DE,fc,lognormal){
+                        num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend){
 
   # Generating sample labels
   group <- rep(LETTERS[seq_len(length(n.libs))],times = n.libs)
@@ -144,7 +145,8 @@ simulateTPM <- function(contigs,contigs.subset,
   # Simulating transcript-wise expression
   trExpr <- simulateExpr(x = contigs.subset,n.feat = nrow(contigs.subset),
                          n.libs = n.libs,lib.sizes = lib.sizes,
-                         num.DE = num.DE,fc = fc,lognormal = lognormal)
+                         num.DE = num.DE,fc = fc,lognormal = lognormal,
+                         df.bcv = df.bcv,bcv.true = bcv.true,bcv.trend = bcv.trend)
 
   # Generating TPM values
   tpm <- trExpr$expr / contigs.subset$Length
@@ -203,7 +205,8 @@ readFasta <- function(fasta){
 #' @importFrom readr write_tsv
 simulateFASTQ <- function(fasta,n.libs,lib.sizes,dest,tmpdir,paired.end,
                           fc,num.DE,genome,BPPARAM,read.length,
-                          fragment.length.min,lognormal){
+                          fragment.length.min,lognormal,
+                          df.bcv,bcv.true,bcv.trend){
 
   # Checking if simulation has already been run
   dir.create(dest,showWarnings = FALSE,recursive = TRUE)
@@ -226,7 +229,8 @@ simulateFASTQ <- function(fasta,n.libs,lib.sizes,dest,tmpdir,paired.end,
   message('Simulating transcript-wise TPM...')
   txTPM <- simulateTPM(contigs = contigs, contigs.subset = contigs.subset,
                        lib.sizes = lib.sizes,n.libs = n.libs,
-                       num.DE = num.DE,fc = fc,lognormal = lognormal)
+                       num.DE = num.DE,fc = fc,lognormal = lognormal,
+                       df.bcv = df.bcv,bcv.true = bcv.true,bcv.trend = bcv.trend)
 
   # Getting quality reference
   quality.source <- ifelse(read.length %in% c(75, 100),'Rsubread','rfun')
@@ -305,7 +309,11 @@ simulateExperiment <- function(dest,
                                run.salmon = TRUE,
                                run.kallisto = FALSE,
                                run.dtu = FALSE,
-                               seed = NULL){
+                               seed = NULL,
+                               bcv.trend = TRUE,
+                               df.bcv = 40,
+                               bcv.true = 0.2,
+                               lenient = FALSE){
 
   # Setting up parallel computing
   if(is.null(seed)){
@@ -329,7 +337,8 @@ simulateExperiment <- function(dest,
                 paired.end = paired.end,num.DE = num.DE,
                 genome = genome,BPPARAM = BPPARAM,
                 read.length = read.length,fragment.length.min = fragment.length.min,
-                lognormal = lognormal)
+                lognormal = lognormal,
+                df.bcv = df.bcv,bcv.true = bcv.true, bcv.trend = bcv.trend)
 
   # Quantifying FASTQs
   path.targets <- file.path(dest,'meta/targets.tsv.gz')
@@ -340,24 +349,25 @@ simulateExperiment <- function(dest,
                 run.salmon = run.salmon, run.kallisto = run.kallisto)
 
   # Running methods
-  runDTUMethods(dest = file.path(dest),run.salmon = run.salmon, run.kallisto = run.kallisto,run.dtu = run.dtu)
+  runDTUMethods(dest = file.path(dest),run.salmon = run.salmon, run.kallisto = run.kallisto,run.dtu = run.dtu,lenient = lenient)
 
   # Organizing FASTQ files
   path.fastq <- read.delim(path.targets,header = TRUE)
   if (isTRUE(keep.fastq)) {
     message('Copying FASTQ files...')
     dir.create(file.path(dest,'fastq'))
-    file.copy(from = unlist(path.fastq),to = file.path(dest,'fastq'))
+    fq.files <- paste(unlist(path.fastq),collapse = " ")
+    to.dir <- paste0(normalizePath(file.path(dest,'fastq')),'/')
+    system2(command = "cp",args = paste(fq.files,to.dir))
   }
-  unlink(tmpdir,recursive = TRUE)
 }
 
-runDTUMethods <- function(dest,run.salmon,run.kallisto,run.dtu){
+runDTUMethods <- function(dest,run.salmon,run.kallisto,run.dtu,lenient){
   if (run.dtu) {
     if (run.salmon) {
       message('Running DTU methods with Salmon quantification...')
       dir.create(file.path(dest,'dtu-salmon'),recursive = TRUE,showWarnings = FALSE)
-      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-salmon'),dest = file.path(dest,'dtu-salmon'),quantifier = 'salmon')
+      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-salmon'),dest = file.path(dest,'dtu-salmon'),quantifier = 'salmon',lenient = lenient)
       if (file.exists(file.path(dest, 'dtu-salmon', 'time.tsv'))) {
         message('DTU analysis w/ Salmon completed!')
       } else{
@@ -367,7 +377,7 @@ runDTUMethods <- function(dest,run.salmon,run.kallisto,run.dtu){
     if (run.kallisto) {
       message('Running DTU methods with kallisto quantification...')
       dir.create(file.path(dest,'dtu-kallisto'),recursive = TRUE,showWarnings = FALSE)
-      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-kallisto'),dest = file.path(dest,'dtu-kallisto'),quantifier = 'kallisto')
+      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-kallisto'),dest = file.path(dest,'dtu-kallisto'),quantifier = 'kallisto',lenient = lenient)
       if (file.exists(file.path(dest, 'dtu-kallisto', 'time.tsv'))) {
         message('DTU analysis w/ kallisto completed!')
       } else{
