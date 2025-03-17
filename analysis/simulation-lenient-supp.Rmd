@@ -1,0 +1,175 @@
+---
+title: "Simulation study"
+author: "Pedro L. Baldoni"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+# Introduction
+
+## Setup
+
+```{r simulation_intro_setup_options}
+knitr::opts_chunk$set(dev = "png",
+                      dpi = 300,
+                      dev.args = list(type = "cairo-png"),
+                      root.dir = '.',
+                      autodep = TRUE)
+
+options(knitr.kable.NA = "-")
+```
+
+```{r simulation_intro_setup_lib,message=FALSE,warning=FALSE}
+library(data.table)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+library(plyr)
+library(devtools)
+library(kableExtra)
+load_all('../code/pkg')
+```
+
+```{r simulation_intro_setup_paths}
+path.misc <- file.path('../misc/simulation-lenient-supp.Rmd')
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)
+
+# Gene-level stats
+path.metrics.lenient <-
+  list.files('../output/simulation-lenient/summary','metrics.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.metrics <-
+  list.files('../output/simulation/summary','metrics.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+
+# Transcript-level stats
+path.metrics.tx.lenient <-
+  list.files('../output/simulation-lenient/summary','metrics.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.metrics.tx <-
+  list.files('../output/simulation/summary','metrics.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+```
+
+
+```{r simulation_parameters}
+bs <- 8
+cnames <- c('Genome','Length','FC','Reads','Scenario','LibsPerGroup','Quantifier','Method','Feature')
+```
+
+## Data loading
+
+```{r simulation_intro_data_targets_paired}
+relabel <- function(x,feature = NULL){
+  y <- copy(x)
+  if(!is.null(feature)) y$Feature <- feature
+  y$LibsPerGroup %<>% factor(levels = paste0(c(3, 5, 10), 'libsPerGroup'),labels = paste0(c(3,5,10),' samples per group')) %<>% droplevels()
+  y$Length %<>% factor(levels = paste0('readlen-', seq(50, 150, 25)),labels = paste0(seq(50, 150, 25), 'bp')) %<>% droplevels()
+  y$Scenario %<>% factor(levels = c('balanced','unbalanced'),labels = c('Equal library sizes','Unequal library sizes'))
+  if (!is.null(x$Sample)) {
+    browser()
+    y$Sample %<>% factor(levels = c(paste0("groupA_rep",1:10,"_R1"),paste0("groupB_rep",1:10,"_R1")),labels = c(paste0("A",1:10),paste0("B",1:10))) %<>% droplevels()
+  }
+  return(y)
+}
+
+# Loading datasets
+dt.metrics.lenient <- do.call(rbind,lapply(path.metrics.lenient,fread)) %>% relabel(feature = 'Gene')
+dt.metrics <- do.call(rbind,lapply(path.metrics,fread)) %>% relabel(feature = 'Gene')
+
+dt.metrics.tx.lenient <- do.call(rbind,lapply(path.metrics.tx.lenient,fread)) %>% relabel(feature = 'Transcript')
+dt.metrics.tx <- do.call(rbind,lapply(path.metrics.tx,fread)) %>% relabel(feature = 'Transcript')
+```
+
+```{r simulation_methods}
+meth <- c('edgeR-scaled-F',
+          'edgeR-scaled-Simes',
+          'limma-scaled-F',
+          'limma-scaled-Simes',
+          'DEXSeq-raw',
+          'satuRn-raw',
+          'DRIMSeq-raw')
+
+meth.lab <- c('edgeR',
+              'edgeR-Simes',
+              'limma',
+              'limma-Simes',
+              'DEXSeq',
+              'satuRn',
+              'DRIMSeq')
+```
+
+# filterByExpr Tables
+
+```{r simulation_power}
+dt.power <- rbind(dt.metrics[FC == 'fc2' & Method %in% meth,],
+                  dt.metrics.tx[FC == 'fc2' & Method %in% meth,],
+                  fill = TRUE)
+dt.power[,filterByExpr := 'Default']
+
+dt.power.lenient <- rbind(dt.metrics.lenient[FC == 'fc2' & Method %in% meth,],
+                          dt.metrics.tx.lenient[FC == 'fc2' & Method %in% meth,],
+                          fill = TRUE)
+dt.power.lenient[,filterByExpr := 'Custom']
+
+dt.table <- rbind(dt.power,dt.power.lenient)
+dt.table$Method %<>% mapvalues(from = meth,to = meth.lab)
+dt.table[, FDR := roundPretty(ifelse((FP+TP) == 0,0,100*FP/(FP+TP)),1)]
+```
+
+## Gene-level
+
+```{r simulation_power-gene}
+dt.table.gene.default <- dt.table[Feature == 'Gene' & grepl('limma|edgeR',Method) & filterByExpr == 'Default',]
+dt.table.gene.default <- dt.table.gene.default[order(LibsPerGroup,Method),c('LibsPerGroup','Method','TP','FP','FDR')]
+
+dt.table.gene.lenient <- dt.table[Feature == 'Gene' & grepl('limma|edgeR',Method) & filterByExpr == 'Custom',]
+dt.table.gene.lenient <- dt.table.gene.lenient[order(LibsPerGroup,Method),c('LibsPerGroup','Method','TP','FP','FDR')]
+
+dt.table.gene <- merge(dt.table.gene.default,dt.table.gene.lenient,by = c('LibsPerGroup','Method'),all.x = TRUE,sort = FALSE)
+
+dt.table.gene$LibsPerGroup %<>%
+  factor(labels = c('Three','Five','Ten'))
+
+kb.gene <-
+  kbl(dt.table.gene,
+      escape = FALSE,
+      format = 'latex',
+      booktabs = TRUE,
+      col.names = linebreak(c('Samples per\ngroup','Method','TP','FP','FDR','TP','FP','FDR')),
+      align = 'llcccccc') %>%
+  add_header_above(c(" " = 2, "Strict" = 3, "Lenient" = 3)) %>%
+  collapse_rows(1, latex_hline = 'major') %>%
+  footnote(general = 'TP: true positive genes. FP: false positive genes. FDR: false discovery rate.')
+```
+
+## Transcript-level
+
+```{r simulation_power-transcript}
+dt.table.tx.default <- dt.table[Feature == 'Transcript' & grepl('limma|edgeR',Method) & filterByExpr == 'Default',]
+dt.table.tx.default <- dt.table.tx.default[order(LibsPerGroup,Method),c('LibsPerGroup','Method','TP','FP','FDR')]
+
+dt.table.tx.lenient <- dt.table[Feature == 'Transcript' & grepl('limma|edgeR',Method) & filterByExpr == 'Custom',]
+dt.table.tx.lenient <- dt.table.tx.lenient[order(LibsPerGroup,Method),c('LibsPerGroup','Method','TP','FP','FDR')]
+
+dt.table.tx <- merge(dt.table.tx.default,dt.table.tx.lenient,by = c('LibsPerGroup','Method'),all.x = TRUE,sort = FALSE)
+
+dt.table.tx$LibsPerGroup %<>%
+  factor(labels = c('Three','Five','Ten'))
+
+kb.tx <-
+  kbl(dt.table.tx,
+      escape = FALSE,
+      format = 'latex',
+      booktabs = TRUE,
+      col.names = linebreak(c('Samples per\ngroup','Method','TP','FP','FDR','TP','FP','FDR')),
+      align = 'llcccccc') %>%
+  add_header_above(c(" " = 2, "Strict" = 3, "Lenient" = 3)) %>%
+  collapse_rows(1, latex_hline = 'major') %>%
+  footnote(general = 'TP: true positive transcripts. FP: false positive transcripts. FDR: false discovery rate.')
+```
+
+# Output files
+
+```{r simulation_output}
+save_kable(kb.gene,file = file.path(path.misc,"SuppTable-Filtering-Gene.tex"))
+save_kable(kb.tx,file = file.path(path.misc,"SuppTable-Filtering-Transcript.tex"))
+```

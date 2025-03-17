@@ -1,0 +1,585 @@
+---
+title: "Simulation study"
+author: "Pedro L. Baldoni"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+# Introduction
+
+## Setup
+
+```{r mouse_intro_setup_options}
+knitr::opts_chunk$set(dev = "png",
+                      dpi = 300,
+                      dev.args = list(type = "cairo-png"),
+                      root.dir = '.',
+                      autodep = TRUE)
+
+options(knitr.kable.NA = "-")
+```
+
+```{r mouse_intro_setup_lib,message=FALSE,warning=FALSE}
+library(edgeR)
+library(rtracklayer)
+library(Rsubread)
+library(GenomicRanges)
+library(GenomicFeatures)
+library(data.table)
+library(Gviz)
+library(TxDb.Mmusculus.UCSC.mm39.refGene)
+library(csaw)
+library(BiocParallel)
+library(ggplot2)
+library(stringr)
+library(png)
+library(patchwork)
+```
+
+```{r mouse_intro_setup_paths}
+path.misc <- '../misc/mouse.Rmd'
+path.quant <- list.dirs('../output/mouse/salmon',recursive = FALSE)
+path.target <- '../data/mouse/misc/targets.txt'
+path.entrez <- "../data/annotation/mm39/gencode.vM35.metadata.EntrezGene.gz"
+path.fasta <- '../data/annotation/mm39/gencode.vM35.transcripts.fa.gz'
+path.gtf <- '../data/annotation/mm39/gencode.vM35.annotation.gtf.gz'
+path.bam <- "../output/mouse/subread/alignment"
+path.bw <- "../output/mouse/subread/coverage/"
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)
+```
+
+```{r mouse_intro_setup_parameters}
+bs <- 8
+```
+
+```{r mouse_intro_setup_function}
+plotSplice2 <- function(fit, coef=ncol(fit), geneid=NULL, genecolname=NULL, rank=1L, FDR=0.05,cex.axis = 1,exonlabel = NULL,fontsize = 8,...)
+  #	This function has been adapted from limma::plotSplice so that axis labels
+  # uses "transcript" and not "exon"
+{
+  if(is.null(genecolname))
+    genecolname <- fit$genecolname
+  else
+    genecolname <- as.character(genecolname)
+
+  if(is.null(geneid)) {
+    #		Find gene from specified rank
+    if(rank==1L)
+      i <- which.min(fit$gene.F.p.value[,coef])
+    else
+      i <- order(fit$gene.F.p.value[,coef])[rank]
+    geneid <- paste(fit$gene.genes[i,genecolname], collapse=".")
+  } else {
+    #		Find gene from specified name
+    geneid <- as.character(geneid)
+    i <- which(fit$gene.genes[,genecolname]==geneid)[1]
+    if(!length(i)) stop(paste("geneid",geneid,"not found"))
+  }
+
+  #	Row numbers containing exons
+  j <- fit$gene.firstexon[i]:fit$gene.lastexon[i]
+
+  exoncolname <- fit$exoncolname
+  if(!is.null(exonlabel)) exoncolname <- exonlabel
+
+  #	Get strand if possible
+  strcol <- grepl("strand", colnames(fit$gene.genes), ignore.case=TRUE)
+  if(any(strcol)) geneid <- paste0(geneid, " (", as.character(fit$gene.genes[i, strcol])[1], ")")
+
+  if(is.null(exoncolname)) {
+    plot(fit$coefficients[j, coef], xlab="Exon", ylab="logFC (this transcript vs rest)", main=geneid, type="b")
+  } else {
+    exon.id <- fit$genes[j, exoncolname]
+    # xlab <- paste("Exon", exoncolname, sep=" ")
+    plot(fit$coefficients[j, coef], xlab="", ylab="logFC (this transcript vs rest)", main=geneid, type="b", xaxt="n",cex.lab = fontsize/12,cex.main = fontsize/12,cex.axis=fontsize/12,...)
+    axis(1, at=1:length(j), labels=exon.id, las=2, cex.axis=fontsize/12)
+    # mtext(xlab, side=1, padj=5.2)
+  }
+
+  #	Mark the topSpliced exons
+  top <- topSplice(fit, coef=coef, number=Inf, test="t", sort.by="none")
+  m <- which(top[, genecolname] %in% fit$gene.genes[i, genecolname])
+  fdr <- top$FDR[m]
+  sig <- fdr < FDR
+  if(any(sig)){
+    fdr.sig <- fdr[sig]
+    if(length(unique(fdr.sig))==1)
+      cex <- 1.5
+    else {
+      abs.fdr <- abs(log10(fdr.sig))
+      from <- range(abs.fdr)
+      to <- c(1,2)
+      cex <- (abs.fdr - from[1])/diff(from) * diff(to) + to[1]
+    }
+    points((1:length(j))[sig], fit$coefficients[j[sig], coef], col="red", pch=16, cex=cex)
+  }
+
+  abline(h=0,lty=2)
+  invisible()
+}
+
+plot.barplot <- function(x,top = 10,fontsize = 8){
+  txt <- x$Term[1:top]
+  txt <- str_to_sentence(txt)
+  pval <- x$P.DE[1:top]
+
+  df <- data.frame(Term = txt,Value = -log10(pval))
+  df$Term <- factor(df$Term,levels = txt[order(pval,decreasing = TRUE)])
+
+  ggplot(data = df,aes(y = Term,x = Value)) +
+    geom_col(fill = 'gray',col = 'black') +
+    theme_bw(base_size = fontsize,base_family = 'sans') +
+    theme(panel.grid = element_blank(),
+          axis.text = element_text(colour = 'black',size = fontsize),
+          axis.title = element_text(colour = 'black',size = fontsize)) +
+    labs(x = "-log10(P-value)",y = NULL)
+}
+
+getGeneRanges <- function(entrezid,type = 'gene',flank = TRUE){
+  out <-
+    genes(TxDb.Mmusculus.UCSC.mm39.refGene, filter = list(gene_id = entrezid))
+  if (type == 'promoter') {
+    out <- promoters(out)
+  }
+  if(flank == TRUE & type == 'gene'){
+    flank <- ceiling(0.25*width(out))
+    out <- GRanges(seqnames = as.character(seqnames(out)),IRanges(start = start(out)-flank,end = end(out) + flank))
+  }
+
+  return(out)
+}
+
+getCoverage <- function(bam, lib.sizes, gr, param, labels = NULL, group.by = NULL, ...) {
+  reads <- bplapply(seq_along(bam),function(i){
+    reads <- extractReads(bam.file = bam[i], gr, param = param)
+  },...)
+
+  if (!is.null(group.by)) {
+    groups <- unique(group.by)
+    reads <- bplapply(seq_along(groups),function(i){
+      subreads <- reads[group.by == groups[i]]
+      do.call('c',subreads)
+    },...)
+    names(reads) <- groups
+
+    lib.sizes <- bplapply(seq_along(groups),function(i){
+      sum(lib.sizes[group.by == groups[i]])
+    },...)
+    lib.sizes <- unlist(lib.sizes)
+  } else{
+    if (is.null(labels)) {
+      names(reads) <- bam
+    } else{
+      names(reads) <- labels
+    }
+
+  }
+
+  cov <- bplapply(seq_along(reads),function(i){
+    as(coverage(reads[[i]])/(lib.sizes[i]/1e6), "GRanges")
+  },...)
+  names(cov) <- names(reads)
+  return(cov)
+}
+
+getTrack <- function(cov, fill = NULL, ylim = NULL,yTicksAt = NULL,isBAM = NULL, ...) {
+  if (is.null(fill)) {
+    fill <- rep('gray',length(cov))
+  }
+  if (is.null(ylim) & isBAM) {
+    max.y <- max(unlist(lapply(cov,function(i){max(i$score)})))
+    ylim <- c(0,round(max.y + 5, -1))
+  }
+
+  out <- bplapply(seq_along(cov),function(i){
+    DataTrack(cov[[i]],
+              type = "histogram",
+              baseline = 0,
+              col.baseline = 'black',
+              lwd.baseline = 0.25,
+              ylim = ylim,
+              yTicksAt = yTicksAt,
+              name = names(cov[i]),
+              fill = fill[i],
+              col.title = 'black',
+              background.title = "white",
+              col.axis = 'black',
+              col.histogram = NA)
+  },...)
+
+  return(out)
+}
+
+plotCoverage <- function(x,lib.sizes,param,anno,fontsize = 8,isBAM = TRUE,
+                         gr = NULL,entrezid = NULL,fill = NULL, labels = NULL, group.by = NULL, flank = TRUE, main = NULL,ylim = NULL, yTicksAt = NULL, ...){
+  if(!is.null(entrezid)){
+    gr <- getGeneRanges(entrezid,flank = TRUE)
+  }
+  if(isBAM){
+    cov <- getCoverage(bam = x,lib.sizes = lib.sizes,gr = gr,param = param,group.by = group.by,labels = labels,...)
+  } else{
+    cov <- x
+    names(cov) <- labels
+  }
+
+  if (!is.null(fill) & !is.null(group.by)) {
+    groups <- unique(group.by)
+    fill <- lapply(seq_along(groups),function(i){
+      subfill <- unique(fill[group.by == groups[i]])
+      if(length(subfill) == 1){
+        return(subfill)
+      } else{
+        stop('fill argument must be unique within groups')
+      }
+    })
+    fill <- unlist(fill)
+  }
+  track <- getTrack(cov = cov,fill = fill,ylim = ylim,yTicksAt = yTicksAt,isBAM = isBAM)
+
+  itrack <- IdeogramTrack(genome = 'mm39',
+                          chromosome = as.character(seqnames(gr)),
+                          fontcolor = 'black',
+                          cex = fontsize/12)
+  axisTrack <- GenomeAxisTrack(cex = fontsize/12)
+
+  plotTracks(c(itrack,track, anno),
+             chromosome = as.character(seqnames(gr)),
+             cex.axis = fontsize/12,
+             cex.title = fontsize/12,
+             cex.group = fontsize/12,
+             sizes = c(0.1,rep(0.4,9), 0.75),
+             from = start(gr),
+             to = end(gr))
+}
+
+plot.voom <- function(fit,fontsize = 8,...){
+  plot(x = fit$voom.xy$x,
+       y = fit$voom.xy$y,
+       xlab = fit$voom.xy$xlab,
+       ylab = fit$voom.xy$ylab,
+       pch = fit$voom.xy$pch,
+       cex = fit$voom.xy$cex,
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       cex.main = fontsize/12,...)
+  lines(fit$voom.line,col="red",lty=1)
+}
+```
+
+## Data loading
+
+```{r mouse_intro_data_targets}
+targets <- read.delim(path.target,sep = ';')
+targets$pool <- factor(targets$pool,levels = c('1','2','3'))
+```
+
+```{r mouse_intro_data_quant}
+cs <- catchSalmon(path.quant)
+
+tx.name <- strsplit2(rownames(cs$annotation),"\\|")
+
+rownames(cs$annotation) <- rownames(cs$counts) <- tx.name[,1]
+colnames(cs$counts) <- basename(colnames(cs$counts))
+```
+
+```{r mouse_intro_data_meta}
+entrez <- fread(path.entrez,col.names = c('TranscriptID','EntrezID'))
+
+df.fa <- as.data.table(scanFasta(path.fasta))
+TranscriptID.fa <- strsplit2(df.fa$TranscriptID,"\\|")[,1]
+GeneID.fa <- strsplit2(df.fa$TranscriptID,"\\|")[,2]
+TranscriptBioType.fa <- strsplit2(df.fa$TranscriptID,"\\|")[,8]
+df.fa$TranscriptID <- TranscriptID.fa
+df.fa$GeneID <- GeneID.fa
+df.fa$TranscriptBioType <- TranscriptBioType.fa
+df.fa[,allUnique := all(Unique),by = 'GeneID']
+df.fa <- df.fa[order(GeneID,TranscriptID),]
+
+gtf <- import(path.gtf)
+gtf.tx <- gtf[gtf$type == 'transcript']
+gtf.tx$EntrezID <- entrez$EntrezID[match(gtf.tx$transcript_id,entrez$TranscriptID)]
+gtf.tx$keep.gene <- gtf.tx$gene_type %in% c('protein_coding','lncRNA') & #. (1)
+  as.character(seqnames(gtf.tx)) %in% paste0('chr',c(1:19,'X','Y')) & #. (2)
+  gtf.tx$gene_id %in% df.fa[allUnique == TRUE,unique(GeneID)] & #. (3)
+  !is.na(gtf.tx$EntrezID)
+gtf.tx$keep.tx <- grepl("protein_coding|lncRNA",gtf.tx$transcript_type)
+```
+
+# Differential Transcript Usage
+
+```{r mouse_dtu_dgelist}
+dge <- DGEList(counts = cs$counts/cs$annotation$Overdispersion,
+               samples = targets,
+               genes = cs$annotation)
+
+dge.raw <- DGEList(counts = cs$counts,
+               samples = targets,
+               genes = cs$annotation)
+
+
+dge$genes[,c('TranscriptID','GeneID')] <- 
+  dge.raw$genes[,c('TranscriptID','GeneID')] <-
+  df.fa[match(rownames(dge),df.fa$TranscriptID),c('TranscriptID','GeneID')]
+dge$genes[,c('TranscriptSymbol','GeneSymbol','EntrezID')] <- 
+  dge.raw$genes[,c('TranscriptSymbol','GeneSymbol','EntrezID')] <- 
+  mcols(gtf.tx)[match(rownames(dge),gtf.tx$transcript_id),c('transcript_name','gene_name','EntrezID')] |> 
+  as.data.frame()
+```
+
+```{r mouse_dtu_filtnorm}
+keep <- filterByExpr(dge)
+keep.gene <- gtf.tx$keep.gene[match(rownames(dge),gtf.tx$transcript_id)]
+keep.tx <- gtf.tx$keep.tx[match(rownames(dge),gtf.tx$transcript_id)]
+
+dge.filtr <- dge[keep & keep.gene & keep.tx,,keep.lib.sizes = FALSE]
+dge.filtr <- normLibSizes(dge.filtr)
+
+dge.raw.filtr <- dge.raw[keep & keep.gene & keep.tx,,keep.lib.sizes = FALSE]
+dge.raw.filtr <- normLibSizes(dge.raw.filtr)
+```
+
+```{r mouse_dtu_eda,fig.height=7,fig.width=7}
+par(mfrow = c(2,2))
+y <- cpm(dge.filtr,log = TRUE)
+plotMDS(y,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+plotMDS(y,labels = dge.filtr$samples$pool,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+
+y.nobatch <- 
+  removeBatchEffect(x = y,
+                    batch = dge.filtr$samples$pool,
+                    group = dge.filtr$samples$group)
+plotMDS(y.nobatch,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+plotMDS(y.nobatch,labels = dge.filtr$samples$pool,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+dev.off()
+```
+
+
+```{r mouse_dtu_design}
+design <- model.matrix(~0+group,data = dge.filtr$samples)
+colnames(design) <- sub("group","",colnames(design))
+
+contr <- makeContrasts(LPvsBa = LP - Basal,
+                       MLvsBa = ML - Basal,
+                       MLvsLP = ML - LP,
+                       LvsBa = 0.5*(LP+ML) - Basal,
+                       levels = design)
+```
+
+## voom
+
+```{r mouse_dtu_voom,fig.height=3,fig.width=4}
+v.raw <- voomLmFit(counts = dge.raw.filtr,
+               design = design,
+               block = dge.raw.filtr$samples$pool,
+               plot = TRUE,save.plot = TRUE)
+
+v <- voomLmFit(counts = dge.filtr,
+               design = design,
+               block = dge.filtr$samples$pool,
+               plot = TRUE,save.plot = TRUE)
+
+fit.raw <- contrasts.fit(fit = v.raw,contrasts = contr)
+fit <- contrasts.fit(fit = v,contrasts = contr)
+```
+
+## diffSplice
+
+```{r mouse_dtu_ds}
+ds.raw <- diffSplice(fit.raw, geneid = "GeneID", exonid = "TranscriptID",robust = TRUE)
+ds <- diffSplice(fit, geneid = "GeneID", exonid = "TranscriptID",robust = TRUE)
+
+out.transcript.LPvsBa <- topSplice(ds, test = "t",number = Inf,coef = "LPvsBa")
+out.gene.LPvsBa <- topSplice(ds, test = "F", number = Inf,coef = "LPvsBa")
+
+out.transcript.MLvsBa <- topSplice(ds, test = "t",number = Inf,coef = "MLvsBa")
+out.gene.MLvsBa <- topSplice(ds, test = "F", number = Inf,coef = "MLvsBa")
+
+out.transcript.MLvsLP <- topSplice(ds, test = "t",number = Inf,coef = "MLvsLP")
+out.gene.MLvsLP <- topSplice(ds, test = "F", number = Inf,coef = "MLvsLP")
+
+out.transcript.LvsBa <- topSplice(ds, test = "t",number = Inf,coef = "LvsBa")
+out.gene.LvsBa <- topSplice(ds, test = "F", number = Inf,coef = "LvsBa")
+```
+
+```{r mouse_dtu_ds_priordf}
+summary(ds.raw$gene.df.prior)
+summary(ds$gene.df.prior)
+```
+
+```{r mouse_dtu_ds_top}
+head(out.gene.LPvsBa,20)
+head(out.gene.MLvsBa,20)
+head(out.gene.MLvsLP,20)
+head(out.gene.LvsBa,20)
+```
+
+```{r mouse_dtu_ds_top_sig}
+table(out.gene.LPvsBa$FDR < 0.05)
+
+out.gene.LPvsBa[out.gene.LPvsBa$GeneSymbol %in% c('Foxp1','Ezh2','Asap1'),]
+```
+
+```{r mouse_dtu_ds_top_transcript}
+head(out.transcript.LPvsBa,20)
+head(out.transcript.MLvsBa,20)
+head(out.transcript.MLvsLP,20)
+head(out.transcript.LvsBa,20)
+```
+
+```{r mouse_dtu_ds_top_transcript_sig}
+table(out.transcript.LPvsBa$FDR < 0.05)
+
+out.transcript.LPvsBa[out.transcript.LPvsBa$GeneSymbol %in% c('Foxp1','Ezh2','Asap1'),]
+```
+
+```{r mouse_dtu_ds_switch}
+gene.unique <- out.gene.LPvsBa[out.gene.LPvsBa$FDR < 0.05,'GeneSymbol']
+tx.unique <- 
+  out.transcript.LPvsBa[out.transcript.LPvsBa$FDR < 0.05 & 
+                          out.transcript.LPvsBa$GeneSymbol %in% gene.unique,"GeneSymbol"]
+table(table(tx.unique))
+
+x <- as.data.table(out.transcript.LPvsBa[out.transcript.LPvsBa$FDR < 0.05 & 
+                        out.transcript.LPvsBa$GeneSymbol %in% gene.unique,])
+
+x.sign <- x[GeneSymbol %in% names(table(tx.unique)[table(tx.unique) == 2]),][,.(min = sign(min(logFC)),max = sign(max(logFC))),by = 'GeneSymbol']
+
+x.sign[,table(min,max)]
+
+
+out.gene.LPvsBa[out.gene.LPvsBa$GeneSymbol %in% c('Eya2'),]
+out.transcript.LPvsBa[out.transcript.LPvsBa$GeneSymbol %in% c('Eya2'),]
+```
+
+```{r mouse_dtu_ds_go}
+go <- goana(de = as.character(out.gene.LPvsBa[out.gene.LPvsBa$FDR < 0.05,"EntrezID"]),species = "Mm")
+top.go <- topGO(go,number = Inf,ontology = "BP")
+head(top.go,20)
+```
+
+# Plots
+
+```{r mouse_plots_voom,fig.height=3,fig.width=4}
+fig.voom <- 
+  wrap_elements(full = ~ plot.voom(v,ylim = c(0.16,2.54)))
+file.voom <- tempfile("voom",fileext = '.png')
+png(file.voom,width = 4,height = 3,units = 'in',res = 300)
+par(mar = c(3, 3, 2, 0.25),mgp = c(2,1,0))
+fig.voom
+dev.off()
+fig.voom <- readPNG(file.voom, native = TRUE)
+plot.voom(v,ylim = c(0.16,2.54))
+```
+```{r mouse_plots_voom_raw,fig.height=3,fig.width=4}
+fig.voom.raw <- wrap_elements(full = ~ plot.voom(v.raw,ylim = c(0.16,2.54)))
+file.voom.raw <- tempfile("voomraw",fileext = '.png')
+png(file.voom.raw,width = 4,height = 3,units = 'in',res = 300)
+par(mar = c(3, 3, 2, 0.25),mgp = c(2,1,0))
+fig.voom.raw
+dev.off()
+fig.voom.raw <- readPNG(file.voom.raw, native = TRUE)
+plot.voom(v.raw,ylim = c(0.16,2.54))
+```
+
+```{r mouse_plots_splice,fig.height=3,fig.width=4}
+fig.splice <- 
+  wrap_elements(full = ~ plotSplice2(fit = ds,coef = 'LPvsBa',geneid = 'Foxp1',
+                                     genecolname = 'GeneSymbol',
+                                     exonlabel = 'TranscriptSymbol',
+                                     ylim = c(-5.5,4.5)))
+file.splice <- tempfile("splice",fileext = '.png')
+png(file.splice,width = 4,height = 3,units = 'in',res = 300)
+par(mar = c(4, 3, 2, 0.25),mgp = c(2,1,0))
+fig.splice
+dev.off()
+fig.splice <- readPNG(file.splice, native = TRUE)
+plotSplice2(fit = ds,coef = 'LPvsBa',geneid = 'Foxp1',
+            genecolname = 'GeneSymbol',exonlabel = 'TranscriptSymbol',
+            ylim = c(-5.5,4.5))
+```
+
+```{r mouse_plots_go,fig.height=3,fig.width=4}
+file.barplot <- tempfile("barplot",fileext = '.png')
+png(file.barplot,width = 4,height = 3,units = 'in',res = 300)
+plot.barplot(top.go,top = 10)
+dev.off()
+fig.barplot <- readPNG(file.barplot, native = TRUE)
+plot.barplot(top.go,top = 10)
+```
+
+```{r mouse_plots_coverage,fig.height=6,fig.width=4}
+BAM <- file.path(path.bam,paste0(dge.filtr$samples$sample,'.bam'))
+BW <- file.path(path.bw,paste0(dge.filtr$samples$sample,'.bw'))
+
+txdb <- makeTxDbFromGRanges(gtf[(gtf$transcript_id %in% gtf.tx$transcript_id) & 
+                                  (gtf$transcript_id %in% ds$genes$TranscriptID)])
+
+geneTrack <-
+  GeneRegionTrack(txdb,showId=TRUE,
+                  just.group = 'right',
+                  background.title = "white",
+                  min.height=10,
+                  fill = 'grey',
+                  name = 'Transcripts',
+                  col.title = 'black',
+                  fontcolor.group = 'black')
+
+ranges(geneTrack)$symbol <-
+  gtf.tx$transcript_name[match(ranges(geneTrack)$symbol,gtf.tx$transcript_id)]
+
+param <- readParam(pe = 'both',restrict = paste0("chr", c(1:19, "X", "Y")))
+
+geneTrack.left <- geneTrack
+geneTrack.left@dp@pars$just.group <- 'left'
+
+Eya2 <- tempfile("Eya2",fileext = 'png')
+png(Eya2,width = 4,height = 6,res = 300,units = 'in')
+plotCoverage(gr = GRanges('chr2',IRanges(165415686,165545256)),
+             x = BAM,
+             fontsize = 8,
+             lib.sizes = dge.filtr$samples$lib.size*dge.filtr$samples$norm.factors,
+             param = param,
+             anno = geneTrack.left,
+             fill = c(rep('#df5b6d',3),rep('#5ece5a',3),rep("#2f95e2",3)),
+             ylim = c(-0.75,6.75),
+             yTicksAt = c(0,3,6),
+             labels = with(dge.filtr$samples,paste(group,pool,sep = '.')))
+dev.off()
+fig.Eya2 <- readPNG(Eya2, native = TRUE)
+
+plotCoverage(gr = GRanges('chr2',IRanges(165415686,165545256)),
+             x = BAM,
+             fontsize = 8,
+             lib.sizes = dge.filtr$samples$lib.size*dge.filtr$samples$norm.factors,
+             param = param,
+             anno = geneTrack.left,
+             fill = c(rep('#df5b6d',3),rep('#5ece5a',3),rep("#2f95e2",3)),
+             ylim = c(-0.75,6.75),
+             yTicksAt = c(0,3,6),
+             labels = with(dge.filtr$samples,paste(group,pool,sep = '.')))
+```
+
+# Output files
+
+```{r mouse_output}
+fig.ds <- wrap_plots(A = wrap_elements(fig.voom.raw),
+                     B = wrap_elements(fig.voom),
+                     C = wrap_elements(fig.barplot),
+                     D = wrap_elements(fig.splice),
+                     E = wrap_elements(fig.Eya2),
+                     design = c(area(1,1),area(1,2),
+                                area(2,1),area(3,1),area(2,2,3,2)),
+                     heights = c(3,3,3)/8) +
+  plot_annotation(tag_levels = 'a',
+                  theme = theme(plot.tag = element_text(size = 8)))
+
+ggsave(plot = fig.ds,
+       filename = file.path(path.misc,'Figure-CaseStudy.pdf'),
+       device = 'pdf',width = 8,height = 9,units = 'in',dpi = 300)
+```
