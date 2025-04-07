@@ -1,0 +1,34 @@
+
+\begin{tabular}[t]{llcccccc}
+\toprule
+\multicolumn{2}{c}{ } & \multicolumn{3}{c}{Strict} & \multicolumn{3}{c}{Lenient} \\
+\cmidrule(l{3pt}r{3pt}){3-5} \cmidrule(l{3pt}r{3pt}){6-8}
+\makecell[l]{Samples per\\group} & Method & TP & FP & FDR & TP & FP & FDR\\
+\midrule
+ & edgeR & 1502.85 & 60.10 & 3.8 & 1504.60 & 70.75 & 4.5\\
+
+ & edgeR-Simes & 1505.80 & 59.60 & 3.8 & 1511.45 & 68.85 & 4.4\\
+
+ & limma & 1419.95 & 51.25 & 3.5 & 1435.60 & 62.25 & 4.2\\
+
+\multirow{-4}{*}{\raggedright\arraybackslash Three} & limma-Simes & 1424.80 & 52.95 & 3.6 & 1449.20 & 62.75 & 4.2\\
+\cmidrule{1-8}
+ & edgeR & 1990.15 & 77.85 & 3.8 & 2103.65 & 93.25 & 4.2\\
+
+ & edgeR-Simes & 2009.80 & 76.90 & 3.7 & 2129.70 & 93.30 & 4.2\\
+
+ & limma & 1928.25 & 70.80 & 3.5 & 2008.55 & 86.15 & 4.1\\
+
+\multirow{-4}{*}{\raggedright\arraybackslash Five} & limma-Simes & 1945.85 & 72.55 & 3.6 & 2032.90 & 88.45 & 4.2\\
+\cmidrule{1-8}
+ & edgeR & 2559.20 & 101.05 & 3.8 & 2646.05 & 118.95 & 4.3\\
+
+ & edgeR-Simes & 2571.40 & 99.40 & 3.7 & 2659.20 & 114.20 & 4.1\\
+
+ & limma & 2507.55 & 98.65 & 3.8 & 2571.75 & 113.80 & 4.2\\
+
+\multirow{-4}{*}{\raggedright\arraybackslash Ten} & limma-Simes & 2525.15 & 102.95 & 3.9 & 2590.50 & 114.35 & 4.2\\
+\bottomrule
+\multicolumn{8}{l}{\rule{0pt}{1em}\textit{Note: }}\\
+\multicolumn{8}{l}{\rule{0pt}{1em}TP: true positive genes. FP: false positive genes. FDR: false discovery rate.}\\
+\end{tabular}

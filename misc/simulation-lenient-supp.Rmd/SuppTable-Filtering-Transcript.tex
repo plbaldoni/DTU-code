@@ -1,0 +1,22 @@
+
+\begin{tabular}[t]{llcccccc}
+\toprule
+\multicolumn{2}{c}{ } & \multicolumn{3}{c}{Strict} & \multicolumn{3}{c}{Lenient} \\
+\cmidrule(l{3pt}r{3pt}){3-5} \cmidrule(l{3pt}r{3pt}){6-8}
+\makecell[l]{Samples per\\group} & Method & TP & FP & FDR & TP & FP & FDR\\
+\midrule
+ & edgeR & 2683.20 & 96.80 & 3.5 & 2640.00 & 112.30 & 4.1\\
+
+\multirow{-2}{*}{\raggedright\arraybackslash Three} & limma & 2540.05 & 91.45 & 3.5 & 2542.80 & 111.20 & 4.2\\
+\cmidrule{1-8}
+ & edgeR & 3639.75 & 135.90 & 3.6 & 3800.60 & 158.55 & 4.0\\
+
+\multirow{-2}{*}{\raggedright\arraybackslash Five} & limma & 3528.10 & 130.55 & 3.6 & 3643.00 & 159.15 & 4.2\\
+\cmidrule{1-8}
+ & edgeR & 4791.20 & 184.50 & 3.7 & 4929.15 & 211.00 & 4.1\\
+
+\multirow{-2}{*}{\raggedright\arraybackslash Ten} & limma & 4710.75 & 188.65 & 3.9 & 4793.60 & 214.10 & 4.3\\
+\bottomrule
+\multicolumn{8}{l}{\rule{0pt}{1em}\textit{Note: }}\\
+\multicolumn{8}{l}{\rule{0pt}{1em}TP: true positive transcripts. FP: false positive transcripts. FDR: false discovery rate.}\\
+\end{tabular}
