@@ -1,7 +1,7 @@
-name: "DTU-code"
+name: DTU-code
 output_dir: ../docs
 navbar:
-  title: "DTU-code"
+  title: DTU-code
   left:
   - text: Home
     href: index.html
@@ -10,7 +10,7 @@ navbar:
   right:
   - icon: fab fa-github
     text: GitHub
-    href: https://github.com/plbaldoni/GibbsDTE-code
+    href: https://github.com/plbaldoni/DTU-code
 output:
   workflowr::wflow_html:
     toc: yes

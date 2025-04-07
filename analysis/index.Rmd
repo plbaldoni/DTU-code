@@ -1,5 +1,5 @@
 ---
-title: "Home"
+title: "Workflowr page from the DTU paper"
 site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
@@ -8,4 +8,22 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+This website hosts code for the DTU paper, which presents optimized differential transcript usage (DTU) pipelines using the latest versions of the R/Bioconductor packages [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) and [limma](https://bioconductor.org/packages/release/bioc/html/limma.html). 
+
+The presented pipeline builds upon the latest developments of `edgeR` and `limma` with a unified interface via the `diffSplice` function. The pipelines make use of [divided counts](https://doi.org/10.1093/nar/gkad1167) to remove RTA-induced dispersion from transcript isoform counts and account for the sparsity in transcript-level counts. The new `diffSplice` pipelines provide greater power, improved efficiency, and improved FDR control compared to existing specialized DTU methods.
+
+## Simulation study
+
+The pages below present the necessary steps to rerun our simulation study and the code used to generate the figures and tables from the main and supplementary texts of the transcript-level differential expression paper.
+
+* [Rerunning the simulation study](simulation-howto.html)
+* [Simulation results from the main article](simulation-paper.html)
+* [Simulation results from the supplement I (strict filtering)](simulation-supp.html)
+* [Simulation results from the supplement II (lenient filtering)](simulation-lenient-supp.html)
+
+## Case study
+
+The pages below present the data pre-processing steps and analysis report of the RNA-seq experiments from the steady-state adult mouse mammary gland (GEO accession [GSE227750](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227750)).
+
+* [Data pre-processing](mouse-howto.html)
+* [Analysis report](mouse.html)
