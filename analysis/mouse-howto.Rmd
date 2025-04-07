@@ -1,0 +1,33 @@
+---
+title: "Pre-processing the mouse dataset"
+author: "Pedro L. Baldoni"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+Our case study is based on the paired-end Illumina short read RNA-seq experiment from the steady-state adult mouse mammary gland ([GSE227750](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227750)).
+
+All the RNA-seq experiments were quantified with [Salmon](https://salmon.readthedocs.io/) version v1.10.2 with default options using the decoy-aware transcriptome index generated from the mouse Gencode annotation version M35 and the mm39 build of the mouse genome. To generate coverage plots, we have aligned RNA-seq experiments to the *GRCm39* reference genome with [Subread](https://subread.sourceforge.net/) version v.2.0.6.
+
+# Acessing the necessary annotation
+
+Download the Gencode annotation version M35 from [this link](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/) and place files in the directory `./data/annotation/mm39`. Files can be downloaded with the following command line:
+`wget -r -nd ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/*`
+
+# Creating the reference genome and transcriptome
+
+1. Run the script `code/mouse/salmon-index/buildIndex.sh` to build *Salmon*'s transcriptome index. This script uses the following modules: *Salmon*, *MashMap*, *bedtools* and the [generateDecoyTranscriptome.sh](https://github.com/COMBINE-lab/SalmonTools/blob/master/scripts/generateDecoyTranscriptome.sh) script.
+
+2. Run the script `code/mouse/subread-index/buildIndex.R` to build the *Subread* index.
+
+# Downloading, quantifying, and aligning the Illumina paired-end short read experiments
+
+1. Run `./code/mouse/data/runAspera.sh` to download all necessary FASTQ files. This script uses the module *aspera*.
+
+2. Run `./code/mouse/salmon/runSalmon.sh` to quantify the RNA-seq reads with *Salmon*.
+
+3. Run the script `./code/mouse/subread/slurm.sh` to align the RNA-seq samples with *Subread*.
+
+The targets file for this experiment is provided in our GitHub repository for convenience. See file `./data/mouse/misc/targets.txt`.
