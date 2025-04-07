@@ -269,10 +269,10 @@ plot.roc <- function(df.line,scenario,library,legend = FALSE,base_size = bs,
                               legend.direction = 'vertical',
                               legend.box = 'horizontal',
                               legend.position = "inside",
-                              legend.position.inside = c(0.575,0.3),
+                              legend.position.inside = c(0.57,0.3),
                               legend.text = element_text(colour = 'black',size = bs),
                               legend.key.size = unit(0.5,"line"),
-                              legend.spacing.x = unit(-0.2, "cm")) else theme(legend.position = 'none')
+                              legend.spacing.x = unit(-0.25, "cm")) else theme(legend.position = 'none')
   
   for(i in levels(y$Method)){
     p <- p +
