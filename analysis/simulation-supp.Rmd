@@ -553,9 +553,127 @@ fig.t1e <- wrap_plots(A = fig.t1e.a,
 fig.t1e
 ```
 
+# FDR
+
+```{r simulation_fdr,fig.width = 7.5,fig.height =  5}
+meth.fdr <- c('edgeR-raw-F',
+              'edgeR-scaled-F',
+              'edgeR-raw-Simes',
+              'edgeR-scaled-Simes',
+              'limma-raw-F',
+              'limma-scaled-F',
+              'limma-raw-Simes',
+              'limma-scaled-Simes')
+
+meth.fdr.lab <- c('edgeR (raw)',
+                  'edgeR',
+                  'edgeR (raw) - Simes',
+                  'edgeR - Simes',
+                  'limma (raw)',
+                  'limma',
+                  'limma (raw) - Simes',
+                  'limma - Simes')
+
+dt.fdr.plot <- rbind(dt.fdr[FC == 'fc2' & Method %in% meth.fdr,],
+                     dt.fdr.tx[FC == 'fc2' & Method %in% meth.fdr,])
+
+dt.fdr.plot$Method %<>% mapvalues(from = meth.fdr,to = meth.fdr.lab)
+dt.fdr.plot$Method %<>% factor(levels = meth.fdr.lab)
+
+colmeth <- c('green3','orange','darkgreen','darkorange','pink','blue','purple','darkblue')
+names(colmeth) <- meth.fdr.lab
+colmeth <- colmeth[order(names(colmeth))]
+
+plot.fdr <- function(df.line,scenario,library,legend = FALSE,base_size = bs,
+                     color = colmeth,feature,ymax = NULL,xmax = NULL,x,y){
+  tb.bar <- df.line[Scenario == scenario & LibsPerGroup == library & Feature == feature,]
+  
+  p <- ggplot(tb.bar,aes(x = N,y = FDR,color = Method)) +
+    geom_line(linewidth = 0.5) +
+    scale_color_manual(values = colmeth,
+                       breaks = names(colmeth)) +
+    theme_bw(base_size = base_size,base_family = 'sans') +
+    theme(panel.grid = element_blank(),
+          axis.line = element_line(colour = 'black'),
+          axis.text = element_text(colour = 'black',size = base_size),
+          axis.title = element_text(colour = 'black',size = base_size)) +
+    if (legend == TRUE) theme(legend.background = element_rect(fill = alpha('white', 0)),
+                              legend.direction = 'vertical',
+                              legend.box = 'horizontal',
+                              legend.position = "inside",
+                              legend.position.inside = c(0.35,0.6),
+                              legend.text = element_text(size = base_size),
+                              legend.title = element_blank(),
+                              legend.key.size = unit(0.75,"line")) else theme(legend.position = 'none')
+  
+  if(feature == 'Gene') p <- p + coord_cartesian(ylim = c(0,ymax),xlim = c(0,xmax))
+  p + labs(x = x,y = y)
+}
+
+fig.fdr.a <- plot.fdr(df.line = dt.fdr.plot,
+                      scenario = 'Unequal library sizes',
+                      library = '3 samples per group',
+                      feature = 'Gene',
+                      ymax = 1000,
+                      xmax = 2500,
+                      y = 'False discoveries',
+                      x = 'Genes chosen')
+fig.fdr.b <- plot.fdr(df.line = dt.fdr.plot,
+                      scenario = 'Unequal library sizes',
+                      library = '5 samples per group',
+                      feature = 'Gene',
+                      ymax = 400,
+                      xmax = 2500,
+                      y = 'False discoveries',
+                      x = 'Genes chosen')
+fig.fdr.c <- plot.fdr(df.line = dt.fdr.plot,
+                      scenario = 'Unequal library sizes',
+                      library = '10 samples per group',
+                      feature = 'Gene',
+                      ymax = 200,
+                      xmax = 2500,
+                      y = 'False discoveries',
+                      x = 'Genes chosen',
+                      legend = TRUE)
+
+fig.fdr.tx.un.d <- plot.fdr(df.line = dt.fdr.plot,
+                            scenario = 'Unequal library sizes',
+                            library = '3 samples per group',
+                            feature = 'Transcript',
+                            y = 'False discoveries',
+                            x = 'Transcripts chosen')
+fig.fdr.tx.un.e <- plot.fdr(df.line = dt.fdr.plot,
+                            scenario = 'Unequal library sizes',
+                            library = '5 samples per group',
+                            feature = 'Transcript',
+                            y = 'False discoveries',
+                            x = 'Transcripts chosen')
+fig.fdr.tx.un.f <- plot.fdr(df.line = dt.fdr.plot,
+                            scenario = 'Unequal library sizes',
+                            library = '10 samples per group',
+                            feature = 'Transcript',
+                            y = 'False discoveries',
+                            x = 'Transcripts chosen')
+
+fig.fdr <- wrap_plots(A = fig.fdr.a,
+                      B = fig.fdr.b,
+                      C = fig.fdr.c,
+                      D = fig.fdr.tx.un.d,
+                      E = fig.fdr.tx.un.e,
+                      `F` = fig.fdr.tx.un.f,
+                      design = c(area(1,1),area(1,2),area(1,3),
+                                 area(2,1),area(2,2),area(2,3))) +
+  plot_annotation(tag_levels = 'a')
+
+fig.fdr
+```
+
 # Output files
 
 ```{r simulation_output}
+ggsave(plot = fig.fdr,
+       filename = file.path(path.misc,'SuppFigure-FDR.pdf'),
+       device = 'pdf',width = 7.5,height = 5,units = 'in')
 ggsave(plot = fig.power,
        filename = file.path(path.misc,'SuppFigure-Power.pdf'),
        device = 'pdf',width = 7.5,height = 5,units = 'in')
