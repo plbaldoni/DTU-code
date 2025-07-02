@@ -22,12 +22,15 @@ methodsNames <- function(){
               'drimseq-raw',
               'drimseq-scaledTPM',
               'drimseq-dtuScaledTPM',
+              'drimseq-scaled',
               'saturn-raw',
               'saturn-scaledTPM',
               'saturn-dtuScaledTPM',
+              'saturn-scaled',
               'dexseq-raw',
               'dexseq-scaledTPM',
-              'dexseq-dtuScaledTPM')
+              'dexseq-dtuScaledTPM',
+              'dexseq-scaled')
 
   labels <- c('edgeR.v3-scaled-Simes',
               'edgeR.v3-raw-F',
@@ -44,12 +47,15 @@ methodsNames <- function(){
               'DRIMSeq-raw',
               'DRIMSeq-scaledTPM',
               'DRIMSeq-dtuScaledTPM',
+              'DRIMSeq-scaled',
               'satuRn-raw',
               'satuRn-scaledTPM',
               'satuRn-dtuScaledTPM',
+              'satuRn-scaled',
               'DEXSeq-raw',
               'DEXSeq-scaledTPM',
-              'DEXSeq-dtuScaledTPM')
+              'DEXSeq-dtuScaledTPM',
+              'DEXSeq-scaled')
 
   c4 <- c(0,0.25,0.75,1)
   c3 <- c(0,0.5,1)
@@ -57,9 +63,9 @@ methodsNames <- function(){
   color <- c(colramp(c4,c("orange", "lightgoldenrod")),
              colramp(c4,c("red", "lightsalmon")),
              colramp(c4,c("blue", "lightblue")),
-             colramp(c3,c("green3", "lightgreen")),
-             colramp(c3,c("purple", "lightpink")),
-             colramp(c3,c("black", "lightgray")))
+             colramp(c4,c("green3", "lightgreen")),
+             colramp(c4,c("purple", "lightpink")),
+             colramp(c4,c("black", "lightgray")))
 
   names(method) <- names(color) <- labels
   return(list(labels = labels,method = method,color = color))
