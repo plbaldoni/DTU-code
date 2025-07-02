@@ -135,7 +135,8 @@ simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv,bc
 #' @importFrom data.table setkey copy setnames
 simulateTPM <- function(contigs,contigs.subset,
                         n.libs,lib.sizes,
-                        num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend){
+                        num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend,
+                        divide.length = FALSE){
 
   # Generating sample labels
   group <- rep(LETTERS[seq_len(length(n.libs))],times = n.libs)
@@ -149,8 +150,11 @@ simulateTPM <- function(contigs,contigs.subset,
                          df.bcv = df.bcv,bcv.true = bcv.true,bcv.trend = bcv.trend)
 
   # Generating TPM values
-  tpm <- trExpr$expr / contigs.subset$Length
-  tpm <- 1e6 * t(t(tpm) / colSums(tpm))
+  tpm <- trExpr$expr
+  if(divide.length == TRUE){
+    tpm <- tpm / contigs.subset$Length
+    tpm <- 1e6 * t(t(tpm) / colSums(tpm))
+  }
 
   # Organizing contigs.subset
   dimnames(tpm) <- dimnames(trExpr$expr) <- dimnames(trExpr$mu) <- dimnames(trExpr$disp) <- list(contigs.subset$TranscriptID,group.name)
