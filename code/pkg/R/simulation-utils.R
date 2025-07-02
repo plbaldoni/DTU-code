@@ -358,6 +358,9 @@ callMethods <- function(targets,quantifier,tx.gene,lenient){
   time[['drimseq-raw']] <-
     system.time({res[['drimseq-raw']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
+  time[['drimseq-scaled']] <-
+    system.time({res[['drimseq-scaled']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+
   time[['drimseq-scaledTPM']] <-
     system.time({res[['drimseq-scaledTPM']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
 
@@ -369,6 +372,9 @@ callMethods <- function(targets,quantifier,tx.gene,lenient){
   time[['saturn-raw']] <-
     system.time({res[['saturn-raw']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
+  time[['saturn-scaled']] <-
+    system.time({res[['saturn-scaled']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+
   time[['saturn-scaledTPM']] <-
     system.time({res[['saturn-scaledTPM']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
 
@@ -379,6 +385,9 @@ callMethods <- function(targets,quantifier,tx.gene,lenient){
 
   time[['dexseq-raw']] <-
     system.time({res[['dexseq-raw']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+
+  time[['dexseq-scaled']] <-
+    system.time({res[['dexseq-scaled']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
   time[['dexseq-scaledTPM']] <-
     system.time({res[['dexseq-scaledTPM']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
