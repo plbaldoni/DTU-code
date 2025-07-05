@@ -139,6 +139,8 @@ kb.gene <-
   add_header_above(c(" " = 2, "Strict" = 3, "Lenient" = 3)) %>%
   collapse_rows(1, latex_hline = 'major') %>%
   footnote(general = 'TP: true positive genes. FP: false positive genes. FDR: false discovery rate.')
+
+dt.table.gene
 ```
 
 ## Transcript-level
@@ -165,6 +167,8 @@ kb.tx <-
   add_header_above(c(" " = 2, "Strict" = 3, "Lenient" = 3)) %>%
   collapse_rows(1, latex_hline = 'major') %>%
   footnote(general = 'TP: true positive transcripts. FP: false positive transcripts. FDR: false discovery rate.')
+
+dt.table.tx
 ```
 
 # Output files
