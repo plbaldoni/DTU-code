@@ -1,6 +1,6 @@
-# This directory contains scripts used to run the complete simulation pipeline,
-# including (1) sequencing files generation in FASTQ format, (2) quantification
-# with Salmon, and (3) differential transcript usage.
+# This directory contains scripts used to run the complete lenient simulation
+# pipeline, including (1) sequencing files generation in FASTQ format,
+# (2) quantification with Salmon, and (3) differential transcript usage.
 #
 # Steps (1-3) are run on a per-experiment basis, and each experiment is run
 # in a SLURM batch job triggered with array batch jobs.

@@ -14,6 +14,7 @@ paired.end <- as.logical(args[['pe']])
 scenario <- args[['scenario']]
 libs.per.group <- as.integer(args[['libs']])
 workers <- as.integer(args[['workers']])
+bin.salmon <- as.character(args[['binsalmon']])
 projdir <- normalizePath(file.path(dirname(as.character(args[['file']])),"../.."))
 ################################################################################
 
@@ -21,8 +22,6 @@ tmpdir <- tempdir(check = TRUE)
 print(tmpdir)
 
 devtools::load_all(file.path(projdir,"code/pkg"))
-
-bin.salmon <- "/stornext/System/data/software/rhel/9/base/bioinf/salmon/1.10.2/bin/salmon"
 
 if (genome == 'mm39') {
   fasta <- file.path(projdir,'data/annotation/mm39/gencode.vM35.transcripts.fa.gz')
