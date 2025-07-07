@@ -1,4 +1,4 @@
-# This directory contains scripts used to run the complete lenient simulation
+# This directory contains scripts used to run the complete simulation
 # pipeline, including (1) sequencing files generation in FASTQ format,
 # (2) quantification with Salmon, and (3) differential transcript usage.
 #
