@@ -1,6 +1,6 @@
-# This directory contains scripts used to run the complete simulation pipeline,
-# including (1) sequencing files generation in FASTQ format, (2) quantification
-# with Salmon, and (3) differential transcript usage.
+# This directory contains scripts used to run the complete simulation
+# pipeline, including (1) sequencing files generation in FASTQ format,
+# (2) quantification with Salmon, and (3) differential transcript usage.
 #
 # Steps (1-3) are run on a per-experiment basis, and each experiment is run
 # in a SLURM batch job triggered with array batch jobs.
@@ -10,7 +10,11 @@
 # 2 - run the SLURM bash script run.sh with, for example, sbatch run.sh on your
 #     HPC running SLURM scheduler (change this accordingly).
 #
-# Step 1 above with create a parameter.txt file with all combinations of
+# Note that the run.sh script assumes that the HPC has a Salmon v1.10.2 installed,
+# which can be loaded via a module environment with "module load salmon/1.10.2".
+# Users should change this accordingly.
+#
+# Step 1 above creates a parameter.txt file with all combinations of
 # scenarios for the simulation. This file parameter.txt is read in Step 2 when
 # you run run.sh. It provides the necessary parameters for each simulation.
 #
