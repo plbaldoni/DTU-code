@@ -52,7 +52,7 @@ createDE <- function(Baseline,GeneStatus,fc){
   list(Baseline.G1 = b1, Baseline.G2 = b2,TranscriptStatus = TranscriptStatus)
 }
 
-simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend){
+simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend,group.disp){
   # This function was written with the goal of mimicking the simulation setup
   # used in the voom paper. Specifically, we use goodTuringProportions to
   # estimate baseline abundances, different asymptotic BCV value as well as
@@ -97,11 +97,18 @@ simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv,bc
   # the same among libraries of the same group. Since we already generated DE
   # status in the steps above, it makes sense to have 1 random shift around the
   # dispersion trend per group and a fixed resulting dispersion per group.
-  chisq <- lapply(seq_len(n.groups),function(x){
-    rv <- df.bcv / rchisq(n.feat, df = df.bcv)
-    matrix(rv,ncol = n.libs[x],nrow = n.feat)
-  })
-  chisq <- do.call(cbind,chisq)
+  if(isTRUE(group.disp)){
+    # Dispersion is transcript- and group-specific
+    chisq <- lapply(seq_len(n.groups),function(x){
+      rv <- df.bcv / rchisq(n.feat, df = df.bcv)
+      matrix(rv,ncol = n.libs[x],nrow = n.feat)
+    })
+    chisq <- do.call(cbind,chisq)
+  } else{
+    # Dispersion is transcript-specific
+    chisq <- df.bcv / rchisq(n.feat, df = df.bcv)
+    chisq <- matrix(chisq,ncol = sum(n.libs),nrow = n.feat,byrow = FALSE)
+  }
 
   # Biological variation and Dispersion trend
   bcv0 <- bcv.true
@@ -135,7 +142,7 @@ simulateExpr <- function(x,n.feat,n.libs,lib.sizes,num.DE,fc,lognormal,df.bcv,bc
 #' @importFrom data.table setkey copy setnames
 simulateTPM <- function(contigs,contigs.subset,
                         n.libs,lib.sizes,
-                        num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend,
+                        num.DE,fc,lognormal,df.bcv,bcv.true,bcv.trend,group.disp,
                         divide.length = FALSE){
 
   # Generating sample labels
@@ -147,7 +154,8 @@ simulateTPM <- function(contigs,contigs.subset,
   trExpr <- simulateExpr(x = contigs.subset,n.feat = nrow(contigs.subset),
                          n.libs = n.libs,lib.sizes = lib.sizes,
                          num.DE = num.DE,fc = fc,lognormal = lognormal,
-                         df.bcv = df.bcv,bcv.true = bcv.true,bcv.trend = bcv.trend)
+                         df.bcv = df.bcv,bcv.true = bcv.true,
+                         bcv.trend = bcv.trend,group.disp = group.disp)
 
   # Generating TPM values
   tpm <- trExpr$expr
@@ -210,7 +218,7 @@ readFasta <- function(fasta){
 simulateFASTQ <- function(fasta,n.libs,lib.sizes,dest,tmpdir,paired.end,
                           fc,num.DE,genome,BPPARAM,read.length,
                           fragment.length.min,lognormal,
-                          df.bcv,bcv.true,bcv.trend){
+                          df.bcv,bcv.true,bcv.trend,group.disp){
 
   # Checking if simulation has already been run
   dir.create(dest,showWarnings = FALSE,recursive = TRUE)
@@ -234,7 +242,8 @@ simulateFASTQ <- function(fasta,n.libs,lib.sizes,dest,tmpdir,paired.end,
   txTPM <- simulateTPM(contigs = contigs, contigs.subset = contigs.subset,
                        lib.sizes = lib.sizes,n.libs = n.libs,
                        num.DE = num.DE,fc = fc,lognormal = lognormal,
-                       df.bcv = df.bcv,bcv.true = bcv.true,bcv.trend = bcv.trend)
+                       df.bcv = df.bcv,bcv.true = bcv.true,
+                       bcv.trend = bcv.trend,group.disp = group.disp)
 
   # Getting quality reference
   quality.source <- ifelse(read.length %in% c(75, 100),'Rsubread','rfun')
@@ -315,6 +324,7 @@ simulateExperiment <- function(dest,
                                run.dtu = FALSE,
                                seed = NULL,
                                bcv.trend = TRUE,
+                               group.disp = TRUE,
                                df.bcv = 40,
                                bcv.true = 0.2,
                                lenient = FALSE){
@@ -342,7 +352,8 @@ simulateExperiment <- function(dest,
                 genome = genome,BPPARAM = BPPARAM,
                 read.length = read.length,fragment.length.min = fragment.length.min,
                 lognormal = lognormal,
-                df.bcv = df.bcv,bcv.true = bcv.true, bcv.trend = bcv.trend)
+                df.bcv = df.bcv,bcv.true = bcv.true, bcv.trend = bcv.trend,
+                group.disp = group.disp)
 
   # Quantifying FASTQs
   path.targets <- file.path(dest,'meta/targets.tsv.gz')
