@@ -12,7 +12,7 @@
 <meta name="author" content="Pedro L. Baldoni" />
 
 
-<title>Pre-processing the mouse dataset</title>
+<title>Simulation Study - Supplementary Results (Lenient Filtering)</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -355,7 +355,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Pre-processing the mouse dataset</h1>
+<h1 class="title toc-ignore">Simulation Study - Supplementary Results
+(Lenient Filtering)</h1>
 <h4 class="author">Pedro L. Baldoni</h4>
 <h4 class="date">27 August, 2025</h4>
 
@@ -652,11 +653,12 @@ have uncommitted changes.
 <div id="versions" class="tab-pane fade">
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/mouse-howto.Rmd</code>) and HTML
-(<code>docs/mouse-howto.html</code>) files. If you’ve configured a
-remote Git repository (see <code>?wflow_git_remote</code>), click on the
-hyperlinks in the table below to view the files as they were in that
-past version.
+made to the R Markdown
+(<code>analysis/supp-simulation-lenient.Rmd</code>) and HTML
+(<code>docs/supp-simulation-lenient.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -685,7 +687,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/59512356c3355cef102f7ba02126a94e96824028/analysis/mouse-howto.Rmd" target="_blank">5951235</a>
+<a href="https://github.com/plbaldoni/DTU-code/blob/59512356c3355cef102f7ba02126a94e96824028/analysis/supp-simulation-lenient.Rmd" target="_blank">5951235</a>
 </td>
 <td>
 Pedro Baldoni
@@ -697,40 +699,6 @@ Pedro Baldoni
 DTU paper revision
 </td>
 </tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/plbaldoni/DTU-code/cb83e0524b87b0193973af537a0163a946748ec5/docs/mouse-howto.html" target="_blank">cb83e05</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-04-08
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/40fd9aaa432a967d509e3bbfe6f491f48048c7e7/analysis/mouse-howto.Rmd" target="_blank">40fd9aa</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-04-08
-</td>
-<td>
-Adding new Rmd how-to
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -738,56 +706,174 @@ Adding new Rmd how-to
 </div>
 </div>
 </div>
-<p>Our case study is based on the paired-end Illumina short read RNA-seq
-experiment from the steady-state adult mouse mammary gland (<a
-href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227748">GSE227748</a>).</p>
-<p>All the RNA-seq experiments were quantified with <a
-href="https://salmon.readthedocs.io/">Salmon</a> version v1.10.2 with
-default options using the decoy-aware transcriptome index generated from
-the mouse Gencode annotation version M35 and the mm39 build of the mouse
-genome. To generate coverage plots, we have aligned RNA-seq experiments
-to the <em>GRCm39</em> reference genome with <a
-href="https://subread.sourceforge.net/">Subread</a> version v.2.0.6.</p>
-<div id="acessing-the-necessary-annotation" class="section level1">
-<h1>Acessing the necessary annotation</h1>
-<p>Download the Gencode annotation version M35 from <a
-href="https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/">this
-link</a> and place files in the directory
-<code>./data/annotation/mm39</code>. Files can be downloaded with the
-following command line:
-<code>wget -r -nd ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/*</code></p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<pre class="r"><code>knitr::opts_chunk$set(dev = &quot;png&quot;,
+                      dpi = 300,
+                      dev.args = list(type = &quot;cairo-png&quot;),
+                      root.dir = &#39;.&#39;,
+                      autodep = TRUE)
+
+options(knitr.kable.NA = &quot;-&quot;)</code></pre>
+<pre class="r"><code>library(data.table)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+library(plyr)
+library(devtools)
+library(kableExtra)
+load_all(&#39;../code/pkg&#39;)</code></pre>
+<pre class="r"><code>path.misc &lt;- file.path(&#39;../misc/supp-simulation-lenient.Rmd&#39;)
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)
+
+# Gene-level stats
+path.metrics.lenient &lt;-
+  list.files(&#39;../output/simulation-lenient-no-trend/summary&#39;,&#39;metrics.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.metrics &lt;-
+  list.files(&#39;../output/simulation-no-trend/summary&#39;,&#39;metrics.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+
+# Transcript-level stats
+path.metrics.tx.lenient &lt;-
+  list.files(&#39;../output/simulation-lenient-no-trend/summary&#39;,&#39;metrics.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.metrics.tx &lt;-
+  list.files(&#39;../output/simulation-no-trend/summary&#39;,&#39;metrics.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)</code></pre>
+<pre class="r"><code>bs &lt;- 8
+cnames &lt;- c(&#39;Genome&#39;,&#39;Length&#39;,&#39;FC&#39;,&#39;Reads&#39;,&#39;Scenario&#39;,&#39;LibsPerGroup&#39;,&#39;Quantifier&#39;,&#39;Method&#39;,&#39;Feature&#39;)</code></pre>
 </div>
-<div id="creating-the-reference-genome-and-transcriptome"
-class="section level1">
-<h1>Creating the reference genome and transcriptome</h1>
-<ol style="list-style-type: decimal">
-<li><p>Run the script <code>code/mouse/salmon-index/buildIndex.sh</code>
-to build <em>Salmon</em>’s transcriptome index. This script uses the
-following modules: <em>Salmon</em>, <em>MashMap</em>, <em>bedtools</em>
-and the <a
-href="https://github.com/COMBINE-lab/SalmonTools/blob/master/scripts/generateDecoyTranscriptome.sh">generateDecoyTranscriptome.sh</a>
-script.</p></li>
-<li><p>Run the script <code>code/mouse/subread-index/buildIndex.R</code>
-to build the <em>Subread</em> index.</p></li>
-</ol>
+<div id="data-loading" class="section level2">
+<h2>Data loading</h2>
+<pre class="r"><code>relabel &lt;- function(x,feature = NULL){
+  y &lt;- copy(x)
+  if(!is.null(feature)) y$Feature &lt;- feature
+  y$LibsPerGroup %&lt;&gt;% factor(levels = paste0(c(3, 5, 10), &#39;libsPerGroup&#39;),labels = paste0(c(3,5,10),&#39; samples per group&#39;)) %&lt;&gt;% droplevels()
+  y$Length %&lt;&gt;% factor(levels = paste0(&#39;readlen-&#39;, seq(50, 150, 25)),labels = paste0(seq(50, 150, 25), &#39;bp&#39;)) %&lt;&gt;% droplevels()
+  y$Scenario %&lt;&gt;% factor(levels = c(&#39;balanced&#39;,&#39;unbalanced&#39;),labels = c(&#39;Equal library sizes&#39;,&#39;Unequal library sizes&#39;))
+  if (!is.null(x$Sample)) {
+    browser()
+    y$Sample %&lt;&gt;% factor(levels = c(paste0(&quot;groupA_rep&quot;,1:10,&quot;_R1&quot;),paste0(&quot;groupB_rep&quot;,1:10,&quot;_R1&quot;)),labels = c(paste0(&quot;A&quot;,1:10),paste0(&quot;B&quot;,1:10))) %&lt;&gt;% droplevels()
+  }
+  return(y)
+}
+
+# Loading datasets
+dt.metrics.lenient &lt;- do.call(rbind,lapply(path.metrics.lenient,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+dt.metrics &lt;- do.call(rbind,lapply(path.metrics,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+
+dt.metrics.tx.lenient &lt;- do.call(rbind,lapply(path.metrics.tx.lenient,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+dt.metrics.tx &lt;- do.call(rbind,lapply(path.metrics.tx,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)</code></pre>
+<pre class="r"><code>meth &lt;- c(&#39;edgeR-scaled-F&#39;,
+          &#39;edgeR-scaled-Simes&#39;,
+          &#39;limma-scaled-F&#39;,
+          &#39;limma-scaled-Simes&#39;,
+          &#39;DEXSeq-raw&#39;,
+          &#39;satuRn-raw&#39;,
+          &#39;DRIMSeq-raw&#39;)
+
+meth.lab &lt;- c(&#39;edgeR&#39;,
+              &#39;edgeR-Simes&#39;,
+              &#39;limma&#39;,
+              &#39;limma-Simes&#39;,
+              &#39;DEXSeq&#39;,
+              &#39;satuRn&#39;,
+              &#39;DRIMSeq&#39;)</code></pre>
 </div>
-<div
-id="downloading-quantifying-and-aligning-the-illumina-paired-end-short-read-experiments"
-class="section level1">
-<h1>Downloading, quantifying, and aligning the Illumina paired-end short
-read experiments</h1>
-<ol style="list-style-type: decimal">
-<li><p>Run <code>./code/mouse/data/runAspera.sh</code> to download all
-necessary FASTQ files. This script uses the module
-<em>aspera</em>.</p></li>
-<li><p>Run <code>./code/mouse/salmon/runSalmon.sh</code> to quantify the
-RNA-seq reads with <em>Salmon</em>.</p></li>
-<li><p>Run the script <code>./code/mouse/subread/slurm.sh</code> to
-align the RNA-seq samples with <em>Subread</em>.</p></li>
-</ol>
-<p>The targets file for this experiment is provided in our GitHub
-repository for convenience. See file
-<code>./data/mouse/misc/targets.txt</code>.</p>
+</div>
+<div id="filterbyexpr-tables" class="section level1">
+<h1>filterByExpr Tables</h1>
+<pre class="r"><code>dt.power &lt;- rbind(dt.metrics[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                  dt.metrics.tx[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                  fill = TRUE)
+dt.power[,filterByExpr := &#39;Default&#39;]
+
+dt.power.lenient &lt;- rbind(dt.metrics.lenient[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                          dt.metrics.tx.lenient[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                          fill = TRUE)
+dt.power.lenient[,filterByExpr := &#39;Custom&#39;]
+
+dt.table &lt;- rbind(dt.power,dt.power.lenient)
+dt.table$Method %&lt;&gt;% mapvalues(from = meth,to = meth.lab)
+dt.table[, FDR := roundPretty(ifelse((FP+TP) == 0,0,100*FP/(FP+TP)),1)]</code></pre>
+<div id="gene-level" class="section level2">
+<h2>Gene-level</h2>
+<pre class="r"><code>dt.table.gene.default &lt;- dt.table[Feature == &#39;Gene&#39; &amp; grepl(&#39;limma|edgeR&#39;,Method) &amp; filterByExpr == &#39;Default&#39;,]
+dt.table.gene.default &lt;- dt.table.gene.default[order(LibsPerGroup,Method),c(&#39;LibsPerGroup&#39;,&#39;Method&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;)]
+
+dt.table.gene.lenient &lt;- dt.table[Feature == &#39;Gene&#39; &amp; grepl(&#39;limma|edgeR&#39;,Method) &amp; filterByExpr == &#39;Custom&#39;,]
+dt.table.gene.lenient &lt;- dt.table.gene.lenient[order(LibsPerGroup,Method),c(&#39;LibsPerGroup&#39;,&#39;Method&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;)]
+
+dt.table.gene &lt;- merge(dt.table.gene.default,dt.table.gene.lenient,by = c(&#39;LibsPerGroup&#39;,&#39;Method&#39;),all.x = TRUE,sort = FALSE)
+
+dt.table.gene$LibsPerGroup %&lt;&gt;%
+  factor(labels = c(&#39;Three&#39;,&#39;Five&#39;,&#39;Ten&#39;))
+
+kb.gene &lt;-
+  kbl(dt.table.gene,
+      escape = FALSE,
+      format = &#39;latex&#39;,
+      booktabs = TRUE,
+      col.names = linebreak(c(&#39;Samples per\ngroup&#39;,&#39;Method&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;)),
+      align = &#39;llcccccc&#39;) %&gt;%
+  add_header_above(c(&quot; &quot; = 2, &quot;Strict&quot; = 3, &quot;Lenient&quot; = 3)) %&gt;%
+  collapse_rows(1, latex_hline = &#39;major&#39;) %&gt;%
+  footnote(general = &#39;TP: true positive genes. FP: false positive genes. FDR: false discovery rate.&#39;)
+
+dt.table.gene</code></pre>
+<pre><code>    LibsPerGroup      Method    TP.x  FP.x  FDR.x    TP.y   FP.y  FDR.y
+          &lt;fctr&gt;      &lt;char&gt;   &lt;num&gt; &lt;num&gt; &lt;char&gt;   &lt;num&gt;  &lt;num&gt; &lt;char&gt;
+ 1:        Three       edgeR 1281.00 43.55    3.3 1255.05  55.05    4.2
+ 2:        Three edgeR-Simes 1277.45 44.95    3.4 1258.75  56.35    4.3
+ 3:        Three       limma 1231.45 44.50    3.5 1280.60  70.60    5.2
+ 4:        Three limma-Simes 1229.55 46.75    3.7 1288.30  69.90    5.1
+ 5:         Five       edgeR 1733.55 60.10    3.4 1922.40  74.95    3.8
+ 6:         Five edgeR-Simes 1748.40 60.95    3.4 1944.30  75.10    3.7
+ 7:         Five       limma 1691.65 63.50    3.6 1874.20  88.90    4.5
+ 8:         Five limma-Simes 1702.55 65.75    3.7 1889.50  92.25    4.7
+ 9:          Ten       edgeR 2409.80 82.90    3.3 2561.35 104.80    3.9
+10:          Ten edgeR-Simes 2424.40 84.85    3.4 2582.50 103.85    3.9
+11:          Ten       limma 2367.05 93.80    3.8 2490.70 117.95    4.5
+12:          Ten limma-Simes 2384.60 98.30    4.0 2512.00 123.55    4.7</code></pre>
+</div>
+<div id="transcript-level" class="section level2">
+<h2>Transcript-level</h2>
+<pre class="r"><code>dt.table.tx.default &lt;- dt.table[Feature == &#39;Transcript&#39; &amp; grepl(&#39;limma|edgeR&#39;,Method) &amp; filterByExpr == &#39;Default&#39;,]
+dt.table.tx.default &lt;- dt.table.tx.default[order(LibsPerGroup,Method),c(&#39;LibsPerGroup&#39;,&#39;Method&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;)]
+
+dt.table.tx.lenient &lt;- dt.table[Feature == &#39;Transcript&#39; &amp; grepl(&#39;limma|edgeR&#39;,Method) &amp; filterByExpr == &#39;Custom&#39;,]
+dt.table.tx.lenient &lt;- dt.table.tx.lenient[order(LibsPerGroup,Method),c(&#39;LibsPerGroup&#39;,&#39;Method&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;)]
+
+dt.table.tx &lt;- merge(dt.table.tx.default,dt.table.tx.lenient,by = c(&#39;LibsPerGroup&#39;,&#39;Method&#39;),all.x = TRUE,sort = FALSE)
+
+dt.table.tx$LibsPerGroup %&lt;&gt;%
+  factor(labels = c(&#39;Three&#39;,&#39;Five&#39;,&#39;Ten&#39;))
+
+kb.tx &lt;-
+  kbl(dt.table.tx,
+      escape = FALSE,
+      format = &#39;latex&#39;,
+      booktabs = TRUE,
+      col.names = linebreak(c(&#39;Samples per\ngroup&#39;,&#39;Method&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;,&#39;TP&#39;,&#39;FP&#39;,&#39;FDR&#39;)),
+      align = &#39;llcccccc&#39;) %&gt;%
+  add_header_above(c(&quot; &quot; = 2, &quot;Strict&quot; = 3, &quot;Lenient&quot; = 3)) %&gt;%
+  collapse_rows(1, latex_hline = &#39;major&#39;) %&gt;%
+  footnote(general = &#39;TP: true positive transcripts. FP: false positive transcripts. FDR: false discovery rate.&#39;)
+
+dt.table.tx</code></pre>
+<pre><code>   LibsPerGroup Method    TP.x   FP.x  FDR.x    TP.y   FP.y  FDR.y
+         &lt;fctr&gt; &lt;char&gt;   &lt;num&gt;  &lt;num&gt; &lt;char&gt;   &lt;num&gt;  &lt;num&gt; &lt;char&gt;
+1:        Three  edgeR 2274.15 105.55    4.4 2176.45 109.85    4.8
+2:        Three  limma 2188.30 111.30    4.8 2233.80 145.60    6.1
+3:         Five  edgeR 3149.60 157.80    4.8 3454.25 156.80    4.3
+4:         Five  limma 3074.35 170.40    5.3 3363.65 197.15    5.5
+5:          Ten  edgeR 4432.85 210.20    4.5 4675.50 224.00    4.6
+6:          Ten  limma 4370.90 248.10    5.4 4564.35 272.25    5.6</code></pre>
+</div>
+</div>
+<div id="output-files" class="section level1">
+<h1>Output files</h1>
+<pre class="r"><code>save_kable(kb.gene,file = file.path(path.misc,&quot;SuppTable-Filtering-Gene.tex&quot;))
+save_kable(kb.tx,file = file.path(path.misc,&quot;SuppTable-Filtering-Transcript.tex&quot;))</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -820,24 +906,95 @@ attached base packages:
 [1] stats     graphics  grDevices datasets  utils     methods   base     
 
 other attached packages:
-[1] workflowr_1.7.1
+ [1] pkg_1.0           kableExtra_1.4.0  devtools_2.4.5    usethis_3.1.0    
+ [5] plyr_1.8.9        patchwork_1.3.0   ggplot2_3.5.1     magrittr_2.0.3   
+ [9] data.table_1.17.0 workflowr_1.7.1  
 
 loaded via a namespace (and not attached):
- [1] jsonlite_1.9.1      compiler_4.4.1      BiocManager_1.30.25
- [4] renv_1.1.2          promises_1.3.2      Rcpp_1.0.14        
- [7] stringr_1.5.1       git2r_0.35.0        callr_3.7.6        
-[10] later_1.4.1         jquerylib_0.1.4     yaml_2.3.10        
-[13] fastmap_1.2.0       R6_2.6.1            knitr_1.49         
-[16] tibble_3.2.1        rprojroot_2.0.4     bslib_0.9.0        
-[19] pillar_1.10.1       rlang_1.1.5         cachem_1.1.0       
-[22] stringi_1.8.4       httpuv_1.6.15       xfun_0.51          
-[25] getPass_0.2-4       fs_1.6.5            sass_0.4.9         
-[28] cli_3.6.4           magrittr_2.0.3      ps_1.9.0           
-[31] digest_0.6.37       processx_3.8.6      rstudioapi_0.17.1  
-[34] lifecycle_1.0.4     vctrs_0.6.5         evaluate_1.0.3     
-[37] glue_1.8.0          whisker_0.4.1       rmarkdown_2.29     
-[40] httr_1.4.7          tools_4.4.1         pkgconfig_2.0.3    
-[43] htmltools_0.5.8.1  </code></pre>
+  [1] splines_4.4.1               later_1.4.1                
+  [3] BiocIO_1.14.0               bitops_1.0-9               
+  [5] filelock_1.0.3              R.oo_1.27.0                
+  [7] tibble_3.2.1                XML_3.99-0.18              
+  [9] lifecycle_1.0.4             httr2_1.1.0                
+ [11] edgeR_4.5.9                 rprojroot_2.0.4            
+ [13] processx_3.8.6              lattice_0.22-6             
+ [15] ensembldb_2.28.1            limma_3.63.9               
+ [17] sass_0.4.9                  rmarkdown_2.29             
+ [19] jquerylib_0.1.4             yaml_2.3.10                
+ [21] remotes_2.5.0               httpuv_1.6.15              
+ [23] sessioninfo_1.2.3           pkgbuild_1.4.6             
+ [25] pbapply_1.7-2               RColorBrewer_1.1-3         
+ [27] DBI_1.2.3                   abind_1.4-8                
+ [29] pkgload_1.4.0               zlibbioc_1.50.0            
+ [31] GenomicRanges_1.56.2        R.utils_2.13.0             
+ [33] purrr_1.0.4                 AnnotationFilter_1.28.0    
+ [35] BiocGenerics_0.50.0         RCurl_1.98-1.16            
+ [37] rappdirs_0.3.3              git2r_0.35.0               
+ [39] GenomeInfoDbData_1.2.12     DEXSeq_1.50.0              
+ [41] wasabi_1.0.1                IRanges_2.38.1             
+ [43] S4Vectors_0.42.1            genefilter_1.86.0          
+ [45] fishpond_2.10.0             annotate_1.82.0            
+ [47] svglite_2.1.3               codetools_0.2-20           
+ [49] DelayedArray_0.30.1         xml2_1.3.7                 
+ [51] tidyselect_1.2.1            locfdr_1.1-8               
+ [53] UCSC.utils_1.0.0            farver_2.1.2               
+ [55] satuRn_1.12.0               matrixStats_1.5.0          
+ [57] stats4_4.4.1                BiocFileCache_2.12.0       
+ [59] GenomicAlignments_1.40.0    jsonlite_1.9.1             
+ [61] ellipsis_0.3.2              survival_3.6-4             
+ [63] systemfonts_1.2.1           tools_4.4.1                
+ [65] progress_1.2.3              Rcpp_1.0.14                
+ [67] glue_1.8.0                  svMisc_1.4.3               
+ [69] SparseArray_1.4.8           DESeq2_1.44.0              
+ [71] xfun_0.51                   MatrixGenerics_1.16.0      
+ [73] GenomeInfoDb_1.40.1         dplyr_1.1.4                
+ [75] withr_3.0.2                 BiocManager_1.30.25        
+ [77] fastmap_1.2.0               boot_1.3-30                
+ [79] rhdf5filters_1.16.0         callr_3.7.6                
+ [81] digest_0.6.37               R6_2.6.1                   
+ [83] mime_0.12                   colorspace_2.1-1           
+ [85] gtools_3.9.5                biomaRt_2.60.1             
+ [87] RSQLite_2.3.9               R.methodsS3_1.8.2          
+ [89] generics_0.1.3              renv_1.1.2                 
+ [91] tximeta_1.22.1              rtracklayer_1.64.0         
+ [93] prettyunits_1.2.0           httr_1.4.7                 
+ [95] htmlwidgets_1.6.4           S4Arrays_1.4.1             
+ [97] whisker_0.4.1               pkgconfig_2.0.3            
+ [99] gtable_0.3.6                blob_1.2.4                 
+[101] hwriter_1.3.2.1             SingleCellExperiment_1.26.0
+[103] XVector_0.44.0              htmltools_0.5.8.1          
+[105] geneplotter_1.82.0          profvis_0.4.0              
+[107] ProtGenerics_1.36.0         sleuth_0.30.1              
+[109] scales_1.3.0                Biobase_2.64.0             
+[111] Rsubread_2.18.0             png_0.1-8                  
+[113] knitr_1.49                  rstudioapi_0.17.1          
+[115] reshape2_1.4.4              tzdb_0.4.0                 
+[117] rjson_0.2.23                curl_6.2.1                 
+[119] cachem_1.1.0                rhdf5_2.48.0               
+[121] stringr_1.5.1               BiocVersion_3.19.1         
+[123] parallel_4.4.1              miniUI_0.1.1.1             
+[125] AnnotationDbi_1.66.0        restfulr_0.0.15            
+[127] desc_1.4.3                  pillar_1.10.1              
+[129] grid_4.4.1                  vctrs_0.6.5                
+[131] urlchecker_1.0.1            promises_1.3.2             
+[133] dbplyr_2.5.0                xtable_1.8-4               
+[135] tximport_1.32.0             evaluate_1.0.3             
+[137] readr_2.1.5                 GenomicFeatures_1.56.0     
+[139] locfit_1.5-9.12             cli_3.6.4                  
+[141] compiler_4.4.1              Rsamtools_2.20.0           
+[143] rlang_1.1.5                 crayon_1.5.3               
+[145] ps_1.9.0                    getPass_0.2-4              
+[147] fs_1.6.5                    stringi_1.8.4              
+[149] viridisLite_0.4.2           BiocParallel_1.38.0        
+[151] txdbmaker_1.0.1             munsell_0.5.1              
+[153] Biostrings_2.72.1           lazyeval_0.2.2             
+[155] Matrix_1.7-0                hms_1.1.3                  
+[157] bit64_4.6.0-1               Rhdf5lib_1.26.0            
+[159] KEGGREST_1.44.1             statmod_1.5.0              
+[161] shiny_1.10.0                DRIMSeq_1.32.0             
+[163] SummarizedExperiment_1.34.0 AnnotationHub_3.12.0       
+[165] memoise_2.0.1               thematic_0.1.6             
+[167] bslib_0.9.0                 bit_4.6.0                  </code></pre>
 </div>
 </div>
 </div>

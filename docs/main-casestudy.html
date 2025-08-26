@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Pedro L. Baldoni" />
+
+
+<title>Case Study - Main Results</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.5.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">DTU-code</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/plbaldoni/DTU-code">
+    <span class="fab fa-github"></span>
+     
+    GitHub
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Case Study - Main Results</h1>
+<h4 class="author">Pedro L. Baldoni</h4>
+<h4 class="date">27 August, 2025</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2025-08-27
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>DTU-code/analysis/</code> <span
+class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20240501code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20240501)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20240501code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20240501)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomplbaldoniDTUcodetree59512356c3355cef102f7ba02126a94e96824028targetblank5951235a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/plbaldoni/DTU-code/tree/59512356c3355cef102f7ba02126a94e96824028" target="_blank">5951235</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomplbaldoniDTUcodetree59512356c3355cef102f7ba02126a94e96824028targetblank5951235a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/plbaldoni/DTU-code/tree/59512356c3355cef102f7ba02126a94e96824028" target="_blank">5951235</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    .gitignore
+    Ignored:    .renvignore
+    Ignored:    DTU-code.Rproj
+    Ignored:    code/.RData
+    Ignored:    code/mouse/data/slurm-16691239.out
+    Ignored:    code/mouse/salmon-index/slurm-16693056.out
+    Ignored:    code/mouse/salmon/slurm-16693640.out
+    Ignored:    code/mouse/subread-index/.RData
+    Ignored:    code/mouse/subread-index/buildindex.Rout
+    Ignored:    code/mouse/subread-index/slurm-19350188.out
+    Ignored:    code/mouse/subread/.nextflow.log
+    Ignored:    code/mouse/subread/.nextflow/
+    Ignored:    code/mouse/subread/log/
+    Ignored:    code/mouse/subread/report.html
+    Ignored:    code/mouse/subread/slurm-19356012.out
+    Ignored:    code/mouse/subread/timeline.html
+    Ignored:    code/mouse/subread/trace-20241127-50139746.txt
+    Ignored:    code/pkg/.Rbuildignore
+    Ignored:    code/pkg/.Rhistory
+    Ignored:    code/pkg/.Rproj.user/
+    Ignored:    code/pkg/src/.gitignore
+    Ignored:    code/pkg/src/RcppExports.o
+    Ignored:    code/pkg/src/pkg.so
+    Ignored:    code/pkg/src/rcpparma_hello_world.o
+    Ignored:    code/simulation-no-trend/
+    Ignored:    data/annotation/mm39/GRCm39.genome.fa.gz
+    Ignored:    data/annotation/mm39/gencode.vM35.annotation.gtf.gz
+    Ignored:    data/annotation/mm39/gencode.vM35.metadata.EntrezGene.gz
+    Ignored:    data/annotation/mm39/gencode.vM35.transcripts.fa.gz
+    Ignored:    data/mouse/fastq/
+    Ignored:    ignore/
+    Ignored:    output/mouse/
+    Ignored:    output/simulation-lenient/
+    Ignored:    output/simulation-no-trend/
+    Ignored:    renv/
+
+Untracked files:
+    Untracked:  code/simulation-lenient-no-trend/
+    Untracked:  misc/main-casestudy.Rmd/
+    Untracked:  misc/main-simulation.Rmd/
+    Untracked:  misc/supp-bcv.Rmd/
+    Untracked:  misc/supp-simulation-dividedcounts.Rmd/
+    Untracked:  misc/supp-simulation-lenient.Rmd/
+    Untracked:  misc/supp-simulation-rawcounts.Rmd/
+    Untracked:  output/old-simulation-lenient/
+    Untracked:  output/old-simulation/
+    Untracked:  output/simulation-lenient-no-trend/
+    Untracked:  output/simulation/
+
+Unstaged changes:
+    Deleted:    analysis/about.Rmd
+    Deleted:    analysis/mouse.Rmd
+    Deleted:    analysis/simulation-lenient-supp.Rmd
+    Deleted:    analysis/simulation-paper.Rmd
+    Deleted:    analysis/simulation-supp.Rmd
+    Modified:   code/pkg/R/simulation-summary.R
+    Modified:   code/pkg/R/simulation.R
+    Deleted:    code/readme.txt
+    Deleted:    code/simulation-lenient/main.R
+    Deleted:    code/simulation-lenient/parameters.R
+    Deleted:    code/simulation-lenient/parameters.txt
+    Deleted:    code/simulation-lenient/readme.txt
+    Deleted:    code/simulation-lenient/run.sh
+    Deleted:    code/simulation-lenient/summarize.R
+    Deleted:    code/simulation/main.R
+    Deleted:    code/simulation/parameters.R
+    Deleted:    code/simulation/parameters.txt
+    Deleted:    code/simulation/readme.txt
+    Deleted:    code/simulation/run.sh
+    Deleted:    code/simulation/summarize.R
+    Deleted:    misc/mouse.Rmd/Figure-CaseStudy.pdf
+    Deleted:    misc/simulation-lenient-supp.Rmd/SuppTable-Filtering-Gene.tex
+    Deleted:    misc/simulation-lenient-supp.Rmd/SuppTable-Filtering-Transcript.tex
+    Deleted:    misc/simulation-paper.Rmd/Figure-FDR.pdf
+    Deleted:    misc/simulation-paper.Rmd/Figure-Power.pdf
+    Deleted:    misc/simulation-paper.Rmd/Figure-Pval.pdf
+    Deleted:    misc/simulation-paper.Rmd/Figure-Time.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-ErrorRate.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-FDR.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-FP-SecondaryTranscripts-Unbalanced.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-Power.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-Pval-Gene-Unbalanced.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-Pval-Transcript-Unbalanced.pdf
+    Deleted:    misc/simulation-supp.Rmd/SuppFigure-ROC.pdf
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown (<code>analysis/main-casestudy.Rmd</code>) and
+HTML (<code>docs/main-casestudy.html</code>) files. If you’ve configured
+a remote Git repository (see <code>?wflow_git_remote</code>), click on
+the hyperlinks in the table below to view the files as they were in that
+past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/plbaldoni/DTU-code/blob/59512356c3355cef102f7ba02126a94e96824028/analysis/main-casestudy.Rmd" target="_blank">5951235</a>
+</td>
+<td>
+Pedro Baldoni
+</td>
+<td>
+2025-08-27
+</td>
+<td>
+DTU paper revision
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<pre class="r"><code>knitr::opts_chunk$set(dev = &quot;png&quot;,
+                      dpi = 300,
+                      dev.args = list(type = &quot;cairo-png&quot;),
+                      root.dir = &#39;.&#39;,
+                      autodep = TRUE)
+
+options(knitr.kable.NA = &quot;-&quot;)</code></pre>
+<pre class="r"><code>library(edgeR)
+library(rtracklayer)
+library(Rsubread)
+library(GenomicRanges)
+library(GenomicFeatures)
+library(data.table)
+library(Gviz)
+library(TxDb.Mmusculus.UCSC.mm39.refGene)
+library(csaw)
+library(BiocParallel)
+library(ggplot2)
+library(stringr)
+library(png)
+library(patchwork)</code></pre>
+<pre class="r"><code>path.misc &lt;- &#39;../misc/main-casestudy.Rmd&#39;
+path.quant &lt;- list.dirs(&#39;../output/mouse/salmon&#39;,recursive = FALSE)
+path.target &lt;- &#39;../data/mouse/misc/targets.txt&#39;
+path.entrez &lt;- &quot;../data/annotation/mm39/gencode.vM35.metadata.EntrezGene.gz&quot;
+path.fasta &lt;- &#39;../data/annotation/mm39/gencode.vM35.transcripts.fa.gz&#39;
+path.gtf &lt;- &#39;../data/annotation/mm39/gencode.vM35.annotation.gtf.gz&#39;
+path.bam &lt;- &quot;../output/mouse/subread/alignment&quot;
+path.bw &lt;- &quot;../output/mouse/subread/coverage/&quot;
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)</code></pre>
+<pre class="r"><code>bs &lt;- 8</code></pre>
+<pre class="r"><code>plotSplice2 &lt;- function(fit, coef=ncol(fit), geneid=NULL, genecolname=NULL, rank=1L, FDR=0.05,cex.axis = 1,exonlabel = NULL,fontsize = 8,...)
+  # This function has been adapted from limma::plotSplice so that axis labels
+  # uses &quot;transcript&quot; and not &quot;exon&quot;
+{
+  if(is.null(genecolname))
+    genecolname &lt;- fit$genecolname
+  else
+    genecolname &lt;- as.character(genecolname)
+  
+  if(is.null(geneid)) {
+    #       Find gene from specified rank
+    if(rank==1L)
+      i &lt;- which.min(fit$gene.F.p.value[,coef])
+    else
+      i &lt;- order(fit$gene.F.p.value[,coef])[rank]
+    geneid &lt;- paste(fit$gene.genes[i,genecolname], collapse=&quot;.&quot;)
+  } else {
+    #       Find gene from specified name
+    geneid &lt;- as.character(geneid)
+    i &lt;- which(fit$gene.genes[,genecolname]==geneid)[1]
+    if(!length(i)) stop(paste(&quot;geneid&quot;,geneid,&quot;not found&quot;))
+  }
+  
+  # Row numbers containing exons
+  j &lt;- fit$gene.firstexon[i]:fit$gene.lastexon[i]
+  
+  exoncolname &lt;- fit$exoncolname
+  if(!is.null(exonlabel)) exoncolname &lt;- exonlabel
+  
+  # Get strand if possible
+  strcol &lt;- grepl(&quot;strand&quot;, colnames(fit$gene.genes), ignore.case=TRUE)
+  if(any(strcol)) geneid &lt;- paste0(geneid, &quot; (&quot;, as.character(fit$gene.genes[i, strcol])[1], &quot;)&quot;)
+  
+  if(is.null(exoncolname)) {
+    plot(fit$coefficients[j, coef], xlab=&quot;Exon&quot;, ylab=&quot;logFC (this transcript vs rest)&quot;, main=geneid, type=&quot;b&quot;)
+  } else {
+    exon.id &lt;- fit$genes[j, exoncolname]
+    # xlab &lt;- paste(&quot;Exon&quot;, exoncolname, sep=&quot; &quot;)
+    plot(fit$coefficients[j, coef], xlab=&quot;&quot;, ylab=&quot;logFC (this transcript vs rest)&quot;, main=geneid, type=&quot;b&quot;, xaxt=&quot;n&quot;,cex.lab = fontsize/12,cex.main = fontsize/12,cex.axis=fontsize/12,...)
+    axis(1, at=1:length(j), labels=exon.id, las=2, cex.axis=fontsize/12)
+    # mtext(xlab, side=1, padj=5.2)
+  }
+  
+  # Mark the topSpliced exons
+  top &lt;- topSplice(fit, coef=coef, number=Inf, test=&quot;t&quot;, sort.by=&quot;none&quot;)
+  m &lt;- which(top[, genecolname] %in% fit$gene.genes[i, genecolname])
+  fdr &lt;- top$FDR[m]
+  sig &lt;- fdr &lt; FDR
+  if(any(sig)){
+    fdr.sig &lt;- fdr[sig]
+    if(length(unique(fdr.sig))==1)
+      cex &lt;- 1.5
+    else {
+      abs.fdr &lt;- abs(log10(fdr.sig))
+      from &lt;- range(abs.fdr)
+      to &lt;- c(1,2)
+      cex &lt;- (abs.fdr - from[1])/diff(from) * diff(to) + to[1]
+    }
+    points((1:length(j))[sig], fit$coefficients[j[sig], coef], col=&quot;red&quot;, pch=16, cex=cex)
+  }
+  
+  abline(h=0,lty=2)
+  invisible()
+}
+
+plot.barplot &lt;- function(x,top = 10,fontsize = 8){
+  txt &lt;- x$Term[1:top]
+  txt &lt;- str_to_sentence(txt)
+  pval &lt;- x$P.DE[1:top]
+  
+  df &lt;- data.frame(Term = txt,Value = -log10(pval))
+  df$Term &lt;- factor(df$Term,levels = txt[order(pval,decreasing = TRUE)])
+  
+  ggplot(data = df,aes(y = Term,x = Value)) +
+    geom_col(fill = &#39;gray&#39;,col = &#39;black&#39;) +
+    theme_bw(base_size = fontsize,base_family = &#39;sans&#39;) +
+    theme(panel.grid = element_blank(),
+          axis.text = element_text(colour = &#39;black&#39;,size = fontsize),
+          axis.title = element_text(colour = &#39;black&#39;,size = fontsize)) +
+    labs(x = &quot;-log10(P-value)&quot;,y = NULL)
+}
+
+getGeneRanges &lt;- function(entrezid,type = &#39;gene&#39;,flank = TRUE){
+  out &lt;-
+    genes(TxDb.Mmusculus.UCSC.mm39.refGene, filter = list(gene_id = entrezid))
+  if (type == &#39;promoter&#39;) {
+    out &lt;- promoters(out)
+  }
+  if(flank == TRUE &amp; type == &#39;gene&#39;){
+    flank &lt;- ceiling(0.25*width(out))
+    out &lt;- GRanges(seqnames = as.character(seqnames(out)),IRanges(start = start(out)-flank,end = end(out) + flank))
+  }
+  
+  return(out)
+}
+
+getCoverage &lt;- function(bam, lib.sizes, gr, param, labels = NULL, group.by = NULL, ...) {
+  reads &lt;- bplapply(seq_along(bam),function(i){
+    reads &lt;- extractReads(bam.file = bam[i], gr, param = param)
+  },...)
+  
+  if (!is.null(group.by)) {
+    groups &lt;- unique(group.by)
+    reads &lt;- bplapply(seq_along(groups),function(i){
+      subreads &lt;- reads[group.by == groups[i]]
+      do.call(&#39;c&#39;,subreads)
+    },...)
+    names(reads) &lt;- groups
+    
+    lib.sizes &lt;- bplapply(seq_along(groups),function(i){
+      sum(lib.sizes[group.by == groups[i]])
+    },...)
+    lib.sizes &lt;- unlist(lib.sizes)
+  } else{
+    if (is.null(labels)) {
+      names(reads) &lt;- bam
+    } else{
+      names(reads) &lt;- labels
+    }
+    
+  }
+  
+  cov &lt;- bplapply(seq_along(reads),function(i){
+    as(coverage(reads[[i]])/(lib.sizes[i]/1e6), &quot;GRanges&quot;)
+  },...)
+  names(cov) &lt;- names(reads)
+  return(cov)
+}
+
+getTrack &lt;- function(cov, fill = NULL, ylim = NULL,yTicksAt = NULL,isBAM = NULL, ...) {
+  if (is.null(fill)) {
+    fill &lt;- rep(&#39;gray&#39;,length(cov))
+  }
+  if (is.null(ylim) &amp; isBAM) {
+    max.y &lt;- max(unlist(lapply(cov,function(i){max(i$score)})))
+    ylim &lt;- c(0,round(max.y + 5, -1))
+  }
+  
+  out &lt;- bplapply(seq_along(cov),function(i){
+    DataTrack(cov[[i]],
+              type = &quot;histogram&quot;,
+              baseline = 0,
+              col.baseline = &#39;black&#39;,
+              lwd.baseline = 0.25,
+              ylim = ylim,
+              yTicksAt = yTicksAt,
+              name = names(cov[i]),
+              fill = fill[i],
+              col.title = &#39;black&#39;,
+              background.title = &quot;white&quot;,
+              col.axis = &#39;black&#39;,
+              col.histogram = NA)
+  },...)
+  
+  return(out)
+}
+
+plotCoverage &lt;- function(x,lib.sizes,param,anno,fontsize = 8,isBAM = TRUE,
+                         gr = NULL,entrezid = NULL,fill = NULL, labels = NULL, group.by = NULL, flank = TRUE, main = NULL,ylim = NULL, yTicksAt = NULL, ...){
+  if(!is.null(entrezid)){
+    gr &lt;- getGeneRanges(entrezid,flank = TRUE)
+  }
+  if(isBAM){
+    cov &lt;- getCoverage(bam = x,lib.sizes = lib.sizes,gr = gr,param = param,group.by = group.by,labels = labels,...)
+  } else{
+    cov &lt;- x
+    names(cov) &lt;- labels
+  }
+  
+  if (!is.null(fill) &amp; !is.null(group.by)) {
+    groups &lt;- unique(group.by)
+    fill &lt;- lapply(seq_along(groups),function(i){
+      subfill &lt;- unique(fill[group.by == groups[i]])
+      if(length(subfill) == 1){
+        return(subfill)
+      } else{
+        stop(&#39;fill argument must be unique within groups&#39;)
+      }
+    })
+    fill &lt;- unlist(fill)
+  }
+  track &lt;- getTrack(cov = cov,fill = fill,ylim = ylim,yTicksAt = yTicksAt,isBAM = isBAM)
+  
+  itrack &lt;- IdeogramTrack(genome = &#39;mm39&#39;,
+                          chromosome = as.character(seqnames(gr)),
+                          fontcolor = &#39;black&#39;,
+                          cex = fontsize/12)
+  axisTrack &lt;- GenomeAxisTrack(cex = fontsize/12)
+  
+  plotTracks(c(itrack,track, anno),
+             chromosome = as.character(seqnames(gr)),
+             cex.axis = fontsize/12,
+             cex.title = fontsize/12,
+             cex.group = fontsize/12,
+             sizes = c(0.1,rep(0.4,9), 0.75),
+             from = start(gr),
+             to = end(gr))
+}
+
+plot.voom &lt;- function(fit,fontsize = 8,...){
+  plot(x = fit$voom.xy$x,
+       y = fit$voom.xy$y,
+       xlab = fit$voom.xy$xlab,
+       ylab = fit$voom.xy$ylab,
+       pch = fit$voom.xy$pch,
+       cex = fit$voom.xy$cex,
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       cex.main = fontsize/12,...)
+  lines(fit$voom.line,col=&quot;red&quot;,lty=1)
+}
+
+# plotBCV returns invisible(), we need to manually export the plot (code from edgeR::plotBCV)
+foo.bcv &lt;- function (y, 
+                     xlab = &quot;Average log CPM&quot;, 
+                     ylab = &quot;Biological coefficient of variation&quot;, 
+                     pch = 16, cex = 0.2,
+                     col.common = &quot;red&quot;, 
+                     col.trend = &quot;blue&quot;, 
+                     col.tagwise = &quot;black&quot;, 
+                     fontsize = 8, ...) {
+  if (!is(y, &quot;DGEList&quot;)) 
+    stop(&quot;y must be a DGEList.&quot;)
+  A &lt;- y$AveLogCPM
+  if (is.null(A)) 
+    A &lt;- aveLogCPM(y$counts, offset = getOffset(y))
+  disp &lt;- getDispersion(y)
+  if (is.null(disp)) 
+    stop(&quot;No dispersions to plot&quot;)
+  if (attr(disp, &quot;type&quot;) == &quot;common&quot;) 
+    disp &lt;- rep_len(disp, length(A))
+  par(mar = c(3, 3, 0.25, 0.25),mgp = c(1.25,0.5,0))
+  plot(A, sqrt(disp), xlab = xlab, ylab = ylab, type = &quot;n&quot;, 
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       ...)
+  labels &lt;- cols &lt;- lty &lt;- pt &lt;- NULL
+  if (!is.null(y$tagwise.dispersion)) {
+    points(A, sqrt(y$tagwise.dispersion), pch = pch, cex = cex, 
+           col = col.tagwise)
+    labels &lt;- c(labels, &quot;Tagwise&quot;)
+    cols &lt;- c(cols, col.tagwise)
+    lty &lt;- c(lty, -1)
+    pt &lt;- c(pt, pch)
+  }
+  if (!is.null(y$common.dispersion)) {
+    abline(h = sqrt(y$common.dispersion), col = col.common, 
+           lwd = 2)
+    labels &lt;- c(labels, &quot;Common&quot;)
+    cols &lt;- c(cols, col.common)
+    lty &lt;- c(lty, 1)
+    pt &lt;- c(pt, -1)
+  }
+  if (!is.null(y$trended.dispersion)) {
+    o &lt;- order(A)
+    lines(A[o], sqrt(y$trended.dispersion)[o], col = col.trend, 
+          lwd = 2)
+    labels &lt;- c(labels, &quot;Trend&quot;)
+    cols &lt;- c(cols, col.trend)
+    lty &lt;- c(lty, 1)
+    pt &lt;- c(pt, -1)
+  }
+  legend(&quot;topright&quot;, legend = labels, lty = lty, pch = pt, 
+         pt.cex = cex, lwd = 2, col = cols,cex = fontsize/12)
+}</code></pre>
+</div>
+<div id="data-loading" class="section level2">
+<h2>Data loading</h2>
+<pre class="r"><code>targets &lt;- read.delim(path.target,sep = &#39;;&#39;)
+targets$pool &lt;- factor(targets$pool,levels = c(&#39;1&#39;,&#39;2&#39;,&#39;3&#39;))</code></pre>
+<pre class="r"><code>cs &lt;- catchSalmon(path.quant)</code></pre>
+<pre><code>Reading ../output/mouse/salmon/GSM7106766, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106767, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106768, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106769, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106770, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106771, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106772, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106773, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106774, 147556 transcripts, 100 gibbs samples</code></pre>
+<pre class="r"><code>tx.name &lt;- strsplit2(rownames(cs$annotation),&quot;\\|&quot;)
+
+rownames(cs$annotation) &lt;- rownames(cs$counts) &lt;- tx.name[,1]
+colnames(cs$counts) &lt;- basename(colnames(cs$counts))</code></pre>
+<pre class="r"><code>entrez &lt;- fread(path.entrez,col.names = c(&#39;TranscriptID&#39;,&#39;EntrezID&#39;))
+
+df.fa &lt;- as.data.table(scanFasta(path.fasta))</code></pre>
+<pre><code>Warning: 2438 duplicate sequences were found in the input. Please check the summary table.</code></pre>
+<pre class="r"><code>TranscriptID.fa &lt;- strsplit2(df.fa$TranscriptID,&quot;\\|&quot;)[,1]
+GeneID.fa &lt;- strsplit2(df.fa$TranscriptID,&quot;\\|&quot;)[,2]
+TranscriptBioType.fa &lt;- strsplit2(df.fa$TranscriptID,&quot;\\|&quot;)[,8]
+df.fa$TranscriptID &lt;- TranscriptID.fa
+df.fa$GeneID &lt;- GeneID.fa
+df.fa$TranscriptBioType &lt;- TranscriptBioType.fa
+df.fa[,allUnique := all(Unique),by = &#39;GeneID&#39;]
+df.fa &lt;- df.fa[order(GeneID,TranscriptID),]
+
+gtf &lt;- import(path.gtf)
+gtf.tx &lt;- gtf[gtf$type == &#39;transcript&#39;]
+gtf.tx$EntrezID &lt;- entrez$EntrezID[match(gtf.tx$transcript_id,entrez$TranscriptID)]
+gtf.tx$keep.gene &lt;- gtf.tx$gene_type %in% c(&#39;protein_coding&#39;,&#39;lncRNA&#39;) &amp; #. (1)
+  as.character(seqnames(gtf.tx)) %in% paste0(&#39;chr&#39;,c(1:19,&#39;X&#39;,&#39;Y&#39;)) &amp; #. (2)
+  gtf.tx$gene_id %in% df.fa[allUnique == TRUE,unique(GeneID)] &amp; #. (3)
+  !is.na(gtf.tx$EntrezID)
+gtf.tx$keep.tx &lt;- grepl(&quot;protein_coding|lncRNA&quot;,gtf.tx$transcript_type)</code></pre>
+</div>
+</div>
+<div id="differential-transcript-usage" class="section level1">
+<h1>Differential Transcript Usage</h1>
+<pre class="r"><code>dge &lt;- DGEList(counts = cs$counts/cs$annotation$Overdispersion,
+               samples = targets,
+               genes = cs$annotation)
+
+dge.raw &lt;- DGEList(counts = cs$counts,
+                   samples = targets,
+                   genes = cs$annotation)
+
+
+dge$genes[,c(&#39;TranscriptID&#39;,&#39;GeneID&#39;)] &lt;- 
+  dge.raw$genes[,c(&#39;TranscriptID&#39;,&#39;GeneID&#39;)] &lt;-
+  df.fa[match(rownames(dge),df.fa$TranscriptID),c(&#39;TranscriptID&#39;,&#39;GeneID&#39;)]
+dge$genes[,c(&#39;TranscriptSymbol&#39;,&#39;GeneSymbol&#39;,&#39;EntrezID&#39;)] &lt;- 
+  dge.raw$genes[,c(&#39;TranscriptSymbol&#39;,&#39;GeneSymbol&#39;,&#39;EntrezID&#39;)] &lt;- 
+  mcols(gtf.tx)[match(rownames(dge),gtf.tx$transcript_id),c(&#39;transcript_name&#39;,&#39;gene_name&#39;,&#39;EntrezID&#39;)] |&gt; 
+  as.data.frame()</code></pre>
+<pre class="r"><code>keep &lt;- filterByExpr(dge)
+keep.gene &lt;- gtf.tx$keep.gene[match(rownames(dge),gtf.tx$transcript_id)]
+keep.tx &lt;- gtf.tx$keep.tx[match(rownames(dge),gtf.tx$transcript_id)]
+
+dge.filtr &lt;- dge[keep &amp; keep.gene &amp; keep.tx,,keep.lib.sizes = FALSE]
+dge.filtr &lt;- normLibSizes(dge.filtr)
+
+dge.raw.filtr &lt;- dge.raw[keep &amp; keep.gene &amp; keep.tx,,keep.lib.sizes = FALSE]
+dge.raw.filtr &lt;- normLibSizes(dge.raw.filtr)</code></pre>
+<pre class="r"><code>par(mfrow = c(2,2))
+y &lt;- cpm(dge.filtr,log = TRUE)
+plotMDS(y,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+plotMDS(y,labels = dge.filtr$samples$pool,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+
+y.nobatch &lt;- 
+  removeBatchEffect(x = y,
+                    batch = dge.filtr$samples$pool,
+                    group = dge.filtr$samples$group)
+plotMDS(y.nobatch,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))
+plotMDS(y.nobatch,labels = dge.filtr$samples$pool,col = dge.filtr$samples$color,
+        xlim = c(-6,3),ylim = c(-4,3))</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_dtu_eda-1.png" width="2100" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>null device 
+          1 </code></pre>
+<pre class="r"><code>design &lt;- model.matrix(~0+group,data = dge.filtr$samples)
+colnames(design) &lt;- sub(&quot;group&quot;,&quot;&quot;,colnames(design))
+
+contr &lt;- makeContrasts(LPvsBa = LP - Basal,
+                       MLvsBa = ML - Basal,
+                       MLvsLP = ML - LP,
+                       LvsBa = 0.5*(LP+ML) - Basal,
+                       levels = design)</code></pre>
+<div id="edger" class="section level2">
+<h2>edgeR</h2>
+<pre class="r"><code>fit.raw &lt;- glmQLFit(y = dge.raw.filtr,design = design)
+
+fit &lt;- glmQLFit(y = dge.filtr,design = design)</code></pre>
+</div>
+<div id="diffsplice" class="section level2">
+<h2>diffSplice</h2>
+<pre class="r"><code>ds.raw.LPvsBa &lt;- diffSplice(fit.raw, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;LPvsBa&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.raw.MLvsBa &lt;- diffSplice(fit.raw, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;MLvsBa&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.raw.MLvsLP &lt;- diffSplice(fit.raw, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;MLvsLP&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.raw.LvsBa &lt;- diffSplice(fit.raw, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;LvsBa&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.LPvsBa &lt;- diffSplice(fit, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;LPvsBa&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.MLvsBa &lt;- diffSplice(fit, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;MLvsBa&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.MLvsLP &lt;- diffSplice(fit, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;MLvsLP&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>ds.LvsBa &lt;- diffSplice(fit, geneid = &quot;GeneID&quot;, exonid = &quot;TranscriptID&quot;,robust = TRUE,contrast = contr[,&#39;LvsBa&#39;])</code></pre>
+<pre><code>Total number of exons:  29954 
+Total number of genes:  14632 
+Number of genes with 1 exon:  7067 
+Mean number of exons in a gene:  2 
+Max number of exons in a gene:  17 </code></pre>
+<pre class="r"><code>out.transcript.LPvsBa &lt;- topSplice(ds.LPvsBa, test = &quot;t&quot;,number = Inf)
+out.gene.LPvsBa &lt;- topSplice(ds.LPvsBa, test = &quot;F&quot;, number = Inf)
+
+out.transcript.MLvsBa &lt;- topSplice(ds.MLvsBa, test = &quot;t&quot;,number = Inf)
+out.gene.MLvsBa &lt;- topSplice(ds.MLvsBa, test = &quot;F&quot;, number = Inf)
+
+out.transcript.MLvsLP &lt;- topSplice(ds.MLvsLP, test = &quot;t&quot;,number = Inf)
+out.gene.MLvsLP &lt;- topSplice(ds.MLvsLP, test = &quot;F&quot;, number = Inf)
+
+out.transcript.LvsBa &lt;- topSplice(ds.LvsBa, test = &quot;t&quot;,number = Inf)
+out.gene.LvsBa &lt;- topSplice(ds.LvsBa, test = &quot;F&quot;, number = Inf)</code></pre>
+<pre class="r"><code>summary(ds.raw.LPvsBa$gene.df.prior)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  4.177   4.177   4.177   4.177   4.177   4.177 </code></pre>
+<pre class="r"><code>summary(ds.LPvsBa$gene.df.prior)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.273   8.230   8.230   8.170   8.230   8.230 </code></pre>
+<pre class="r"><code>head(out.gene.LPvsBa,20)</code></pre>
+<pre><code>                                     GeneID GeneSymbol EntrezID NExons        F
+ENSMUSG00000032366.16 ENSMUSG00000032366.16       Tpm1    22003     15 61.57262
+ENSMUSG00000026131.22 ENSMUSG00000026131.22        Dst    13518     12 38.92348
+ENSMUSG00000022791.20 ENSMUSG00000022791.20       Tnk2    51789     11 41.46390
+ENSMUSG00000025290.18 ENSMUSG00000025290.18      Rps24    20088      9 46.63931
+ENSMUSG00000005417.18 ENSMUSG00000005417.18      Mprip    26936      8 70.55188
+ENSMUSG00000035325.17 ENSMUSG00000035325.17     Sec31a    69162      7 75.27037
+ENSMUSG00000000631.21 ENSMUSG00000000631.21     Myo18a   360013      7 60.82077
+ENSMUSG00000026987.17 ENSMUSG00000026987.17      Baz2b   407823     11 26.14503
+ENSMUSG00000028649.23 ENSMUSG00000028649.23      Macf1    11426     11 23.67257
+ENSMUSG00000021870.18 ENSMUSG00000021870.18      Slmap    83997     12 21.46028
+ENSMUSG00000031328.17 ENSMUSG00000031328.17       Flna   192176      5 67.08571
+ENSMUSG00000016487.16 ENSMUSG00000016487.16    Ppfibp1    67533      5 79.09824
+ENSMUSG00000069601.15 ENSMUSG00000069601.15       Ank3    11735     14 16.13991
+ENSMUSG00000020758.16 ENSMUSG00000020758.16      Itgb4   192897      7 53.46018
+ENSMUSG00000003617.17 ENSMUSG00000003617.17         Cp    12870      6 48.73895
+ENSMUSG00000021699.18 ENSMUSG00000021699.18      Pde4d   238871      5 68.42785
+ENSMUSG00000025195.10 ENSMUSG00000025195.10      Dnmbp    71972      4 79.68960
+ENSMUSG00000017897.19 ENSMUSG00000017897.19       Eya2    14049      4 97.52174
+ENSMUSG00000032536.13 ENSMUSG00000032536.13      Trak1    67095      7 36.48084
+ENSMUSG00000024589.19 ENSMUSG00000024589.19     Nedd4l    83814      9 20.57101
+                           P.Value          FDR
+ENSMUSG00000032366.16 3.103767e-42 2.348000e-38
+ENSMUSG00000026131.22 7.007902e-28 2.650739e-24
+ENSMUSG00000022791.20 1.884195e-26 4.751313e-23
+ENSMUSG00000025290.18 2.041619e-23 3.861212e-20
+ENSMUSG00000005417.18 3.831376e-23 5.796872e-20
+ENSMUSG00000035325.17 8.626840e-23 1.087701e-19
+ENSMUSG00000000631.21 8.054858e-22 8.705001e-19
+ENSMUSG00000026987.17 1.496884e-20 1.415491e-17
+ENSMUSG00000028649.23 7.212320e-20 6.062356e-17
+ENSMUSG00000021870.18 9.000020e-20 6.808515e-17
+ENSMUSG00000031328.17 5.811140e-19 3.996480e-16
+ENSMUSG00000016487.16 7.435928e-19 4.687733e-16
+ENSMUSG00000069601.15 1.333623e-18 7.760661e-16
+ENSMUSG00000020758.16 1.230927e-17 6.651400e-15
+ENSMUSG00000003617.17 1.167510e-16 5.888143e-14
+ENSMUSG00000021699.18 1.861145e-16 8.799725e-14
+ENSMUSG00000025195.10 2.023675e-16 9.005353e-14
+ENSMUSG00000017897.19 3.306905e-16 1.389819e-13
+ENSMUSG00000032536.13 5.587118e-16 2.224555e-13
+ENSMUSG00000024589.19 2.787341e-15 1.054312e-12</code></pre>
+<pre class="r"><code>head(out.gene.MLvsBa,20)</code></pre>
+<pre><code>                                     GeneID GeneSymbol EntrezID NExons
+ENSMUSG00000032366.16 ENSMUSG00000032366.16       Tpm1    22003     15
+ENSMUSG00000026131.22 ENSMUSG00000026131.22        Dst    13518     12
+ENSMUSG00000005417.18 ENSMUSG00000005417.18      Mprip    26936      8
+ENSMUSG00000069601.15 ENSMUSG00000069601.15       Ank3    11735     14
+ENSMUSG00000006345.11 ENSMUSG00000006345.11       Ggt1    14598      9
+ENSMUSG00000035325.17 ENSMUSG00000035325.17     Sec31a    69162      7
+ENSMUSG00000000631.21 ENSMUSG00000000631.21     Myo18a   360013      7
+ENSMUSG00000021870.18 ENSMUSG00000021870.18      Slmap    83997     12
+ENSMUSG00000025290.18 ENSMUSG00000025290.18      Rps24    20088      9
+ENSMUSG00000028649.23 ENSMUSG00000028649.23      Macf1    11426     11
+ENSMUSG00000022791.20 ENSMUSG00000022791.20       Tnk2    51789     11
+ENSMUSG00000020758.16 ENSMUSG00000020758.16      Itgb4   192897      7
+ENSMUSG00000031328.17 ENSMUSG00000031328.17       Flna   192176      5
+ENSMUSG00000026987.17 ENSMUSG00000026987.17      Baz2b   407823     11
+ENSMUSG00000025195.10 ENSMUSG00000025195.10      Dnmbp    71972      4
+ENSMUSG00000016487.16 ENSMUSG00000016487.16    Ppfibp1    67533      5
+ENSMUSG00000022587.16 ENSMUSG00000022587.16       Ly6e    17069     10
+ENSMUSG00000002985.17 ENSMUSG00000002985.17       Apoe    11816      6
+ENSMUSG00000032536.13 ENSMUSG00000032536.13      Trak1    67095      7
+ENSMUSG00000027455.17 ENSMUSG00000027455.17     Nsfl1c   386649      4
+                              F      P.Value          FDR
+ENSMUSG00000032366.16  72.84535 1.902688e-45 1.439383e-41
+ENSMUSG00000026131.22  58.25486 5.844034e-34 2.210506e-30
+ENSMUSG00000005417.18  85.98632 4.986551e-25 1.257442e-21
+ENSMUSG00000069601.15  24.71621 1.065083e-24 2.014338e-21
+ENSMUSG00000006345.11  40.43033 1.462226e-22 2.004188e-19
+ENSMUSG00000035325.17  73.16849 1.589574e-22 2.004188e-19
+ENSMUSG00000000631.21  63.19290 3.384742e-22 3.657939e-19
+ENSMUSG00000021870.18  24.79689 1.189489e-21 1.124810e-18
+ENSMUSG00000025290.18  38.85818 2.282764e-21 1.918790e-18
+ENSMUSG00000028649.23  25.39400 9.461750e-21 7.157814e-18
+ENSMUSG00000022791.20  26.27866 1.421162e-20 9.773720e-18
+ENSMUSG00000020758.16  70.51814 8.511853e-20 5.366014e-17
+ENSMUSG00000031328.17  71.82415 1.466444e-19 8.533576e-17
+ENSMUSG00000026987.17  23.97728 1.678805e-19 9.071544e-17
+ENSMUSG00000025195.10 119.63230 2.283005e-19 1.151396e-16
+ENSMUSG00000016487.16  73.08383 3.122305e-18 1.476265e-15
+ENSMUSG00000022587.16  24.41239 4.798830e-18 2.135479e-15
+ENSMUSG00000002985.17  48.47224 7.753383e-17 3.258575e-14
+ENSMUSG00000032536.13  37.95900 2.637271e-16 1.050050e-13
+ENSMUSG00000027455.17  89.89833 1.066914e-15 4.035602e-13</code></pre>
+<pre class="r"><code>head(out.gene.MLvsLP,20)</code></pre>
+<pre><code>                                     GeneID GeneSymbol  EntrezID NExons
+ENSMUSG00000006345.11 ENSMUSG00000006345.11       Ggt1     14598      9
+ENSMUSG00000021000.18 ENSMUSG00000021000.18       Mia2    338320      8
+ENSMUSG00000045636.17 ENSMUSG00000045636.17      Mtus1    102103      6
+ENSMUSG00000028337.15 ENSMUSG00000028337.15     Coro2a    107684      2
+ENSMUSG00000022791.20 ENSMUSG00000022791.20       Tnk2     51789     11
+ENSMUSG00000026131.22 ENSMUSG00000026131.22        Dst     13518     12
+ENSMUSG00000024608.12 ENSMUSG00000024608.12      Rps14     20044      4
+ENSMUSG00000023017.11 ENSMUSG00000023017.11      Asic1     11419      2
+ENSMUSG00000002985.17 ENSMUSG00000002985.17       Apoe     11816      6
+ENSMUSG00000029381.17 ENSMUSG00000029381.17    Shroom3     27428      5
+ENSMUSG00000031133.13 ENSMUSG00000031133.13    Arhgef6     73341      5
+ENSMUSG00000038007.15 ENSMUSG00000038007.15      Acer2    230379      3
+ENSMUSG00000004043.15 ENSMUSG00000004043.15     Stat5a     20850      6
+ENSMUSG00000044948.18 ENSMUSG00000044948.18     Cfap43 100048534      2
+ENSMUSG00000001211.16 ENSMUSG00000001211.16     Agpat3     28169      5
+ENSMUSG00000052033.14 ENSMUSG00000052033.14      Pfdn4    109054      5
+ENSMUSG00000021710.12 ENSMUSG00000021710.12        Nln     75805      3
+ENSMUSG00000028865.15 ENSMUSG00000028865.15    Cd164l2     69655      3
+ENSMUSG00000037012.19 ENSMUSG00000037012.19        Hk1     15275      5
+ENSMUSG00000043051.19 ENSMUSG00000043051.19      Disc1    244667      3
+                              F      P.Value          FDR
+ENSMUSG00000006345.11  9.671981 9.142872e-09 4.109143e-05
+ENSMUSG00000021000.18 10.652731 1.122517e-08 4.109143e-05
+ENSMUSG00000045636.17 14.143610 1.629535e-08 4.109143e-05
+ENSMUSG00000028337.15 63.092472 1.210010e-07 2.288432e-04
+ENSMUSG00000022791.20  6.750281 2.178894e-07 3.114506e-04
+ENSMUSG00000026131.22  6.164151 2.824700e-07 3.114506e-04
+ENSMUSG00000024608.12 18.269788 2.881895e-07 3.114506e-04
+ENSMUSG00000023017.11 54.408588 4.383612e-07 4.145253e-04
+ENSMUSG00000002985.17 10.819071 7.808127e-07 6.563164e-04
+ENSMUSG00000029381.17 12.296600 1.598942e-06 1.209600e-03
+ENSMUSG00000031133.13 11.213043 2.818868e-06 1.938613e-03
+ENSMUSG00000038007.15 20.503755 4.386003e-06 2.765009e-03
+ENSMUSG00000004043.15  8.957834 6.198328e-06 3.606950e-03
+ENSMUSG00000044948.18 35.665474 1.156719e-05 6.115109e-03
+ENSMUSG00000001211.16 10.011705 1.216465e-05 6.115109e-03
+ENSMUSG00000052033.14  9.654134 1.336658e-05 6.115109e-03
+ENSMUSG00000021710.12 16.759582 1.374182e-05 6.115109e-03
+ENSMUSG00000028865.15 17.182444 1.715309e-05 7.209064e-03
+ENSMUSG00000037012.19  9.289442 2.199436e-05 8.282758e-03
+ENSMUSG00000043051.19 17.269158 2.294675e-05 8.282758e-03</code></pre>
+<pre class="r"><code>head(out.gene.LvsBa,20)</code></pre>
+<pre><code>                                     GeneID GeneSymbol EntrezID NExons
+ENSMUSG00000032366.16 ENSMUSG00000032366.16       Tpm1    22003     15
+ENSMUSG00000026131.22 ENSMUSG00000026131.22        Dst    13518     12
+ENSMUSG00000005417.18 ENSMUSG00000005417.18      Mprip    26936      8
+ENSMUSG00000022791.20 ENSMUSG00000022791.20       Tnk2    51789     11
+ENSMUSG00000025290.18 ENSMUSG00000025290.18      Rps24    20088      9
+ENSMUSG00000021870.18 ENSMUSG00000021870.18      Slmap    83997     12
+ENSMUSG00000035325.17 ENSMUSG00000035325.17     Sec31a    69162      7
+ENSMUSG00000026987.17 ENSMUSG00000026987.17      Baz2b   407823     11
+ENSMUSG00000069601.15 ENSMUSG00000069601.15       Ank3    11735     14
+ENSMUSG00000028649.23 ENSMUSG00000028649.23      Macf1    11426     11
+ENSMUSG00000000631.21 ENSMUSG00000000631.21     Myo18a   360013      7
+ENSMUSG00000020758.16 ENSMUSG00000020758.16      Itgb4   192897      7
+ENSMUSG00000016487.16 ENSMUSG00000016487.16    Ppfibp1    67533      5
+ENSMUSG00000031328.17 ENSMUSG00000031328.17       Flna   192176      5
+ENSMUSG00000025195.10 ENSMUSG00000025195.10      Dnmbp    71972      4
+ENSMUSG00000032536.13 ENSMUSG00000032536.13      Trak1    67095      7
+ENSMUSG00000022587.16 ENSMUSG00000022587.16       Ly6e    17069     10
+ENSMUSG00000051586.18 ENSMUSG00000051586.18     Mical3   194401      8
+ENSMUSG00000026721.17 ENSMUSG00000026721.17   Rabgap1l    29809      8
+ENSMUSG00000006345.11 ENSMUSG00000006345.11       Ggt1    14598      9
+                              F      P.Value          FDR
+ENSMUSG00000032366.16  89.62684 1.753088e-49 1.326211e-45
+ENSMUSG00000026131.22  57.04387 1.236543e-33 4.677222e-30
+ENSMUSG00000005417.18 116.48500 5.572209e-28 1.405125e-24
+ENSMUSG00000022791.20  42.70691 7.520021e-27 1.422224e-23
+ENSMUSG00000025290.18  58.70369 4.397237e-26 6.653020e-23
+ENSMUSG00000021870.18  33.37751 9.735968e-26 1.227543e-22
+ENSMUSG00000035325.17 101.78473 1.153442e-25 1.246542e-22
+ENSMUSG00000026987.17  37.10061 5.068757e-25 4.572634e-22
+ENSMUSG00000069601.15  25.19360 5.440014e-25 4.572634e-22
+ENSMUSG00000028649.23  32.67393 4.726445e-24 3.575555e-21
+ENSMUSG00000000631.21  71.13761 2.250675e-23 1.547850e-20
+ENSMUSG00000020758.16  91.43121 7.092377e-22 4.471153e-19
+ENSMUSG00000016487.16 113.53720 8.948931e-22 5.207589e-19
+ENSMUSG00000031328.17  81.19961 1.191576e-20 6.438768e-18
+ENSMUSG00000025195.10 126.09731 9.267966e-20 4.674144e-17
+ENSMUSG00000032536.13  52.39220 4.919518e-19 2.326009e-16
+ENSMUSG00000022587.16  25.75031 1.238993e-18 5.513521e-16
+ENSMUSG00000051586.18  30.71680 2.454190e-18 1.031442e-15
+ENSMUSG00000026721.17  30.65362 6.645582e-18 2.645991e-15
+ENSMUSG00000006345.11  25.55395 1.899221e-17 7.183803e-15</code></pre>
+<pre class="r"><code>table(out.gene.LPvsBa$FDR &lt; 0.05)</code></pre>
+<pre><code>
+FALSE  TRUE 
+ 6309  1256 </code></pre>
+<pre class="r"><code>out.gene.LPvsBa[out.gene.LPvsBa$GeneSymbol %in% c(&#39;Foxp1&#39;,&#39;Ezh2&#39;,&#39;Asap1&#39;),]</code></pre>
+<pre><code>                                     GeneID GeneSymbol EntrezID NExons
+ENSMUSG00000030067.18 ENSMUSG00000030067.18      Foxp1   108655     11
+ENSMUSG00000022377.17 ENSMUSG00000022377.17      Asap1    13196      4
+ENSMUSG00000029687.17 ENSMUSG00000029687.17       Ezh2    14056      4
+                              F      P.Value          FDR
+ENSMUSG00000030067.18 13.431045 3.321706e-13 7.179629e-11
+ENSMUSG00000022377.17 18.623702 2.627593e-07 1.077850e-05
+ENSMUSG00000029687.17  4.749363 7.485836e-03 4.644383e-02</code></pre>
+<pre class="r"><code>head(out.transcript.LPvsBa,20)</code></pre>
+<pre><code>                      Length EffectiveLength Overdispersion
+ENSMUST00000113696.8    1714        1393.417       6.058497
+ENSMUST00000097786.10  17212       16891.417      11.289582
+ENSMUST00000092887.11   7304        6983.417      18.089224
+ENSMUST00000116371.8    8766        8445.417      20.285463
+ENSMUST00000113705.8    1759        1438.417       7.934639
+ENSMUST00000101454.9    8345        8024.417      62.251681
+ENSMUST00000153136.2     890         569.769       2.307391
+ENSMUST00000223999.2     525         234.370       5.287670
+ENSMUST00000112384.10    468         194.337       6.131152
+ENSMUST00000182886.8    4047        3726.417      16.866773
+ENSMUST00000182812.8    1093         772.417       2.476381
+ENSMUST00000111623.9    4782        4461.417      11.793842
+ENSMUST00000108325.9    3183        2862.417      20.002417
+ENSMUST00000050905.16   1259         938.417       5.876432
+ENSMUST00000106460.9    5919        5598.417      35.672607
+ENSMUST00000063433.8    2460        2139.417       4.602893
+ENSMUST00000016631.14   4851        4530.417       3.612108
+ENSMUST00000238988.2    3353        3032.417      19.736995
+ENSMUST00000080933.13   5669        5348.417      20.189698
+ENSMUST00000115123.9    4226        3905.417      40.910626
+                               TranscriptID                GeneID
+ENSMUST00000113696.8   ENSMUST00000113696.8 ENSMUSG00000032366.16
+ENSMUST00000097786.10 ENSMUST00000097786.10 ENSMUSG00000026131.22
+ENSMUST00000092887.11 ENSMUST00000092887.11 ENSMUSG00000000631.21
+ENSMUST00000116371.8   ENSMUST00000116371.8 ENSMUSG00000005417.18
+ENSMUST00000113705.8   ENSMUST00000113705.8 ENSMUSG00000032366.16
+ENSMUST00000101454.9   ENSMUST00000101454.9 ENSMUSG00000031328.17
+ENSMUST00000153136.2   ENSMUST00000153136.2 ENSMUSG00000026987.17
+ENSMUST00000223999.2   ENSMUST00000223999.2 ENSMUSG00000025290.18
+ENSMUST00000112384.10 ENSMUST00000112384.10 ENSMUSG00000025290.18
+ENSMUST00000182886.8   ENSMUST00000182886.8 ENSMUSG00000035325.17
+ENSMUST00000182812.8   ENSMUST00000182812.8 ENSMUSG00000035325.17
+ENSMUST00000111623.9   ENSMUST00000111623.9 ENSMUSG00000016487.16
+ENSMUST00000108325.9   ENSMUST00000108325.9 ENSMUSG00000003617.17
+ENSMUST00000050905.16 ENSMUST00000050905.16 ENSMUSG00000032366.16
+ENSMUST00000106460.9   ENSMUST00000106460.9 ENSMUSG00000020758.16
+ENSMUST00000063433.8   ENSMUST00000063433.8 ENSMUSG00000017897.19
+ENSMUST00000016631.14 ENSMUST00000016631.14 ENSMUSG00000016487.16
+ENSMUST00000238988.2   ENSMUST00000238988.2 ENSMUSG00000032536.13
+ENSMUST00000080933.13 ENSMUST00000080933.13 ENSMUSG00000028284.14
+ENSMUST00000115123.9   ENSMUST00000115123.9 ENSMUSG00000022791.20
+                      TranscriptSymbol GeneSymbol EntrezID     logFC         t
+ENSMUST00000113696.8          Tpm1-212       Tpm1    22003  5.725755  16.11515
+ENSMUST00000097786.10          Dst-202        Dst    13518  9.537490  14.20699
+ENSMUST00000092887.11       Myo18a-203     Myo18a   360013  8.684254  16.82793
+ENSMUST00000116371.8         Mprip-204      Mprip    26936 -7.744796 -15.95332
+ENSMUST00000113705.8          Tpm1-215       Tpm1    22003 -4.885498 -11.80448
+ENSMUST00000101454.9          Flna-202       Flna   192176  7.719149  15.78598
+ENSMUST00000153136.2         Baz2b-213      Baz2b   407823 -3.543286 -12.73793
+ENSMUST00000223999.2         Rps24-205      Rps24    20088 -4.295030 -13.08691
+ENSMUST00000112384.10        Rps24-201      Rps24    20088  4.168845  12.95657
+ENSMUST00000182886.8        Sec31a-210     Sec31a    69162  7.856050  14.30556
+ENSMUST00000182812.8        Sec31a-208     Sec31a    69162 -7.791285 -14.24490
+ENSMUST00000111623.9       Ppfibp1-202    Ppfibp1    67533 -4.762570 -15.07771
+ENSMUST00000108325.9            Cp-203         Cp    12870  8.738240  13.49281
+ENSMUST00000050905.16         Tpm1-203       Tpm1    22003  3.813449  10.18045
+ENSMUST00000106460.9         Itgb4-204      Itgb4   192897 -6.998445 -13.28082
+ENSMUST00000063433.8          Eya2-201       Eya2    14049  5.121910  15.03375
+ENSMUST00000016631.14      Ppfibp1-201    Ppfibp1    67533  2.542253  12.83323
+ENSMUST00000238988.2         Trak1-215      Trak1    67095 -6.585212 -12.01177
+ENSMUST00000080933.13       Map3k7-202     Map3k7    26409 -3.367739 -13.08106
+ENSMUST00000115123.9          Tnk2-204       Tnk2    51789 -6.924844 -10.10517
+                           P.Value          FDR
+ENSMUST00000113696.8  2.294375e-29 5.251136e-25
+ENSMUST00000097786.10 8.795338e-24 1.006494e-19
+ENSMUST00000092887.11 9.687227e-23 7.390385e-19
+ENSMUST00000116371.8  7.295853e-21 4.174505e-17
+ENSMUST00000113705.8  1.453987e-20 5.785846e-17
+ENSMUST00000101454.9  1.516803e-20 5.785846e-17
+ENSMUST00000153136.2  1.995921e-20 6.525805e-17
+ENSMUST00000223999.2  1.603277e-19 4.586775e-16
+ENSMUST00000112384.10 2.534642e-19 6.445595e-16
+ENSMUST00000182886.8  5.559523e-19 1.272408e-15
+ENSMUST00000182812.8  6.567054e-19 1.366365e-15
+ENSMUST00000111623.9  1.941174e-18 3.702304e-15
+ENSMUST00000108325.9  4.432966e-17 7.631823e-14
+ENSMUST00000050905.16 4.668393e-17 7.631823e-14
+ENSMUST00000106460.9  2.653817e-16 4.049194e-13
+ENSMUST00000063433.8  4.429212e-16 6.335710e-13
+ENSMUST00000016631.14 4.902679e-16 6.600448e-13
+ENSMUST00000238988.2  7.509612e-16 9.548471e-13
+ENSMUST00000080933.13 1.174446e-15 1.414713e-12
+ENSMUST00000115123.9  1.287014e-15 1.472795e-12</code></pre>
+<pre class="r"><code>head(out.transcript.MLvsBa,20)</code></pre>
+<pre><code>                      Length EffectiveLength Overdispersion
+ENSMUST00000113696.8    1714        1393.417       6.058497
+ENSMUST00000097786.10  17212       16891.417      11.289582
+ENSMUST00000116371.8    8766        8445.417      20.285463
+ENSMUST00000113705.8    1759        1438.417       7.934639
+ENSMUST00000092887.11   7304        6983.417      18.089224
+ENSMUST00000101454.9    8345        8024.417      62.251681
+ENSMUST00000182812.8    1093         772.417       2.476381
+ENSMUST00000050905.16   1259         938.417       5.876432
+ENSMUST00000187486.7    4539        4218.417       3.716784
+ENSMUST00000153136.2     890         569.769       2.307391
+ENSMUST00000223999.2     525         234.370       5.287670
+ENSMUST00000106460.9    5919        5598.417      35.672607
+ENSMUST00000111623.9    4782        4461.417      11.793842
+ENSMUST00000112384.10    468         194.337       6.131152
+ENSMUST00000182886.8    4047        3726.417      16.866773
+ENSMUST00000238988.2    3353        3032.417      19.736995
+ENSMUST00000181974.8    3751        3415.417      11.558536
+ENSMUST00000097785.10  23251       22930.417      37.491850
+ENSMUST00000212396.2    6100        5779.417       3.624965
+ENSMUST00000212048.2    4186        3865.417       1.905066
+                               TranscriptID                GeneID
+ENSMUST00000113696.8   ENSMUST00000113696.8 ENSMUSG00000032366.16
+ENSMUST00000097786.10 ENSMUST00000097786.10 ENSMUSG00000026131.22
+ENSMUST00000116371.8   ENSMUST00000116371.8 ENSMUSG00000005417.18
+ENSMUST00000113705.8   ENSMUST00000113705.8 ENSMUSG00000032366.16
+ENSMUST00000092887.11 ENSMUST00000092887.11 ENSMUSG00000000631.21
+ENSMUST00000101454.9   ENSMUST00000101454.9 ENSMUSG00000031328.17
+ENSMUST00000182812.8   ENSMUST00000182812.8 ENSMUSG00000035325.17
+ENSMUST00000050905.16 ENSMUST00000050905.16 ENSMUSG00000032366.16
+ENSMUST00000187486.7   ENSMUST00000187486.7 ENSMUSG00000026131.22
+ENSMUST00000153136.2   ENSMUST00000153136.2 ENSMUSG00000026987.17
+ENSMUST00000223999.2   ENSMUST00000223999.2 ENSMUSG00000025290.18
+ENSMUST00000106460.9   ENSMUST00000106460.9 ENSMUSG00000020758.16
+ENSMUST00000111623.9   ENSMUST00000111623.9 ENSMUSG00000016487.16
+ENSMUST00000112384.10 ENSMUST00000112384.10 ENSMUSG00000025290.18
+ENSMUST00000182886.8   ENSMUST00000182886.8 ENSMUSG00000035325.17
+ENSMUST00000238988.2   ENSMUST00000238988.2 ENSMUSG00000032536.13
+ENSMUST00000181974.8   ENSMUST00000181974.8 ENSMUSG00000069601.15
+ENSMUST00000097785.10 ENSMUST00000097785.10 ENSMUSG00000026131.22
+ENSMUST00000212396.2   ENSMUST00000212396.2 ENSMUSG00000025195.10
+ENSMUST00000212048.2   ENSMUST00000212048.2 ENSMUSG00000025195.10
+                      TranscriptSymbol GeneSymbol EntrezID     logFC         t
+ENSMUST00000113696.8          Tpm1-212       Tpm1    22003  5.843001  16.40302
+ENSMUST00000097786.10          Dst-202        Dst    13518  9.982264  15.31755
+ENSMUST00000116371.8         Mprip-204      Mprip    26936 -7.802606 -18.17166
+ENSMUST00000113705.8          Tpm1-215       Tpm1    22003 -4.639910 -12.64791
+ENSMUST00000092887.11       Myo18a-203     Myo18a   360013  8.387651  16.09720
+ENSMUST00000101454.9          Flna-202       Flna   192176  7.768713  16.05892
+ENSMUST00000182812.8        Sec31a-208     Sec31a    69162 -4.428908 -14.95384
+ENSMUST00000050905.16         Tpm1-203       Tpm1    22003  3.997142  11.13444
+ENSMUST00000187486.7           Dst-217        Dst    13518  7.136132  11.56893
+ENSMUST00000153136.2         Baz2b-213      Baz2b   407823 -2.426423 -11.75416
+ENSMUST00000223999.2         Rps24-205      Rps24    20088 -3.767190 -12.22724
+ENSMUST00000106460.9         Itgb4-204      Itgb4   192897 -6.958211 -15.08806
+ENSMUST00000111623.9       Ppfibp1-202    Ppfibp1    67533 -3.249190 -14.42305
+ENSMUST00000112384.10        Rps24-201      Rps24    20088  3.591507  11.48674
+ENSMUST00000182886.8        Sec31a-210     Sec31a    69162  7.220616  12.43882
+ENSMUST00000238988.2         Trak1-215      Trak1    67095 -6.255212 -12.62630
+ENSMUST00000181974.8          Ank3-207       Ank3    11735  4.134726  10.03677
+ENSMUST00000097785.10          Dst-201        Dst    13518 -4.190308 -10.29581
+ENSMUST00000212396.2         Dnmbp-205      Dnmbp    71972 -3.312801 -13.82316
+ENSMUST00000212048.2         Dnmbp-203      Dnmbp    71972  3.331550  13.12552
+                           P.Value          FDR
+ENSMUST00000113696.8  6.410959e-30 1.467276e-25
+ENSMUST00000097786.10 9.878200e-26 1.130412e-21
+ENSMUST00000116371.8  3.305327e-23 2.521634e-19
+ENSMUST00000113705.8  2.358254e-22 1.349334e-18
+ENSMUST00000092887.11 6.811969e-22 3.118111e-18
+ENSMUST00000101454.9  7.611756e-21 2.903504e-17
+ENSMUST00000182812.8  9.635903e-20 3.150527e-16
+ENSMUST00000050905.16 3.997520e-19 1.143641e-15
+ENSMUST00000187486.7  6.862194e-19 1.745056e-15
+ENSMUST00000153136.2  1.131050e-18 2.588634e-15
+ENSMUST00000223999.2  3.421923e-18 6.885706e-15
+ENSMUST00000106460.9  3.610280e-18 6.885706e-15
+ENSMUST00000111623.9  9.178506e-18 1.615911e-14
+ENSMUST00000112384.10 5.147343e-17 8.414803e-14
+ENSMUST00000182886.8  1.152067e-16 1.757824e-13
+ENSMUST00000238988.2  1.259495e-16 1.801629e-13
+ENSMUST00000181974.8  1.605422e-16 2.161370e-13
+ENSMUST00000097785.10 2.037339e-16 2.590477e-13
+ENSMUST00000212396.2  2.233102e-16 2.689947e-13
+ENSMUST00000212048.2  1.141003e-15 1.305706e-12</code></pre>
+<pre class="r"><code>head(out.transcript.MLvsLP,20)</code></pre>
+<pre><code>                      Length EffectiveLength Overdispersion
+ENSMUST00000059115.13   6548        6227.417       9.176039
+ENSMUST00000219140.3    4194        3873.417       3.283965
+ENSMUST00000236652.2     367         131.390       1.373704
+ENSMUST00000145079.8     676         361.546       1.819521
+ENSMUST00000176986.8    1604        1283.417       2.952235
+ENSMUST00000107756.4    4154        3833.417       3.221990
+ENSMUST00000127304.2     642         330.598       1.000000
+ENSMUST00000115124.9    4516        4195.417      40.643195
+ENSMUST00000023758.9    4114        3793.417       2.843403
+ENSMUST00000227670.2    2788        2467.417       4.264119
+ENSMUST00000075087.8     816         496.416       4.785076
+ENSMUST00000152761.8     784         464.953       2.508438
+ENSMUST00000105389.8    3678        3357.417       6.816707
+ENSMUST00000135874.2    2943        2622.417       1.184062
+ENSMUST00000069430.15   2869        2548.417      18.887385
+ENSMUST00000105910.2     986         665.431       1.056655
+ENSMUST00000088132.13   2447        2126.417       5.137227
+ENSMUST00000135803.8     801         481.644       1.400323
+ENSMUST00000122389.8    1694        1354.417       1.214908
+ENSMUST00000115672.2    2909        2588.417       1.597177
+                               TranscriptID                GeneID
+ENSMUST00000059115.13 ENSMUST00000059115.13 ENSMUSG00000045636.17
+ENSMUST00000219140.3   ENSMUST00000219140.3 ENSMUSG00000021000.18
+ENSMUST00000236652.2   ENSMUST00000236652.2 ENSMUSG00000024608.12
+ENSMUST00000145079.8   ENSMUST00000145079.8 ENSMUSG00000006345.11
+ENSMUST00000176986.8   ENSMUST00000176986.8 ENSMUSG00000031133.13
+ENSMUST00000107756.4   ENSMUST00000107756.4 ENSMUSG00000028337.15
+ENSMUST00000127304.2   ENSMUST00000127304.2 ENSMUSG00000028337.15
+ENSMUST00000115124.9   ENSMUST00000115124.9 ENSMUSG00000022791.20
+ENSMUST00000023758.9   ENSMUST00000023758.9 ENSMUSG00000023017.11
+ENSMUST00000227670.2   ENSMUST00000227670.2 ENSMUSG00000023017.11
+ENSMUST00000075087.8   ENSMUST00000075087.8 ENSMUSG00000052033.14
+ENSMUST00000152761.8   ENSMUST00000152761.8 ENSMUSG00000037012.19
+ENSMUST00000105389.8   ENSMUST00000105389.8 ENSMUSG00000001211.16
+ENSMUST00000135874.2   ENSMUST00000135874.2 ENSMUSG00000038007.15
+ENSMUST00000069430.15 ENSMUST00000069430.15 ENSMUSG00000021000.18
+ENSMUST00000105910.2   ENSMUST00000105910.2 ENSMUSG00000028865.15
+ENSMUST00000088132.13 ENSMUST00000088132.13 ENSMUSG00000017897.19
+ENSMUST00000135803.8   ENSMUST00000135803.8 ENSMUSG00000026821.17
+ENSMUST00000122389.8   ENSMUST00000122389.8 ENSMUSG00000043051.19
+ENSMUST00000115672.2   ENSMUST00000115672.2 ENSMUSG00000032000.18
+                      TranscriptSymbol GeneSymbol EntrezID      logFC         t
+ENSMUST00000059115.13        Mtus1-202      Mtus1   102103 -1.3865726 -6.927530
+ENSMUST00000219140.3          Mia2-222       Mia2   338320  1.8757371  6.591628
+ENSMUST00000236652.2         Rps14-210      Rps14    20044  1.7810520  7.321235
+ENSMUST00000145079.8          Ggt1-214       Ggt1    14598 -2.8654992 -6.360829
+ENSMUST00000176986.8       Arhgef6-208    Arhgef6    73341  2.3476637  6.613627
+ENSMUST00000107756.4        Coro2a-202     Coro2a   107684  2.5885581  7.943077
+ENSMUST00000127304.2        Coro2a-204     Coro2a   107684 -2.5885581 -7.943077
+ENSMUST00000115124.9          Tnk2-205       Tnk2    51789  2.4853317  5.581714
+ENSMUST00000023758.9         Asic1-201      Asic1    11419 -3.1208505 -7.376218
+ENSMUST00000227670.2         Asic1-203      Asic1    11419  3.1208505  7.376218
+ENSMUST00000075087.8         Pfdn4-202      Pfdn4   109054 -2.3464356 -5.971252
+ENSMUST00000152761.8           Hk1-218        Hk1    15275 -1.4232565 -5.989003
+ENSMUST00000105389.8        Agpat3-204     Agpat3    28169 -1.3075798 -5.707978
+ENSMUST00000135874.2         Acer2-204      Acer2   230379  1.2610295  6.063741
+ENSMUST00000069430.15         Mia2-201       Mia2   338320 -1.3252988 -5.137141
+ENSMUST00000105910.2       Cd164l2-201    Cd164l2    69655  1.5111046  5.826615
+ENSMUST00000088132.13         Eya2-202       Eya2    14049  1.9515783  5.565517
+ENSMUST00000135803.8        Ralgds-206     Ralgds    19730  0.9286164  5.234545
+ENSMUST00000122389.8         Disc1-206      Disc1   244667  2.2795145  5.871323
+ENSMUST00000115672.2         Birc3-202      Birc3    11796  0.8475912  5.243062
+                           P.Value          FDR
+ENSMUST00000059115.13 9.351224e-09 0.0001240438
+ENSMUST00000219140.3  1.160030e-08 0.0001240438
+ENSMUST00000236652.2  1.625951e-08 0.0001240438
+ENSMUST00000145079.8  2.171401e-08 0.0001242421
+ENSMUST00000176986.8  5.240045e-08 0.0002398578
+ENSMUST00000107756.4  1.210010e-07 0.0003956215
+ENSMUST00000127304.2  1.210010e-07 0.0003956215
+ENSMUST00000115124.9  3.660861e-07 0.0009776584
+ENSMUST00000023758.9  4.383612e-07 0.0009776584
+ENSMUST00000227670.2  4.383612e-07 0.0009776584
+ENSMUST00000075087.8  4.698843e-07 0.0009776584
+ENSMUST00000152761.8  5.197076e-07 0.0009912124
+ENSMUST00000105389.8  1.409573e-06 0.0024816072
+ENSMUST00000135874.2  2.030865e-06 0.0033200284
+ENSMUST00000069430.15 3.094822e-06 0.0047220795
+ENSMUST00000105910.2  3.760475e-06 0.0051152560
+ENSMUST00000088132.13 3.799509e-06 0.0051152560
+ENSMUST00000135803.8  4.374556e-06 0.0055622477
+ENSMUST00000122389.8  4.766821e-06 0.0057420123
+ENSMUST00000115672.2  6.105390e-06 0.0067086253</code></pre>
+<pre class="r"><code>head(out.transcript.LvsBa,20)</code></pre>
+<pre><code>                      Length EffectiveLength Overdispersion
+ENSMUST00000113696.8    1714        1393.417       6.058497
+ENSMUST00000097786.10  17212       16891.417      11.289582
+ENSMUST00000116371.8    8766        8445.417      20.285463
+ENSMUST00000113705.8    1759        1438.417       7.934639
+ENSMUST00000153136.2     890         569.769       2.307391
+ENSMUST00000223999.2     525         234.370       5.287670
+ENSMUST00000092887.11   7304        6983.417      18.089224
+ENSMUST00000050905.16   1259         938.417       5.876432
+ENSMUST00000182812.8    1093         772.417       2.476381
+ENSMUST00000101454.9    8345        8024.417      62.251681
+ENSMUST00000111623.9    4782        4461.417      11.793842
+ENSMUST00000106460.9    5919        5598.417      35.672607
+ENSMUST00000112384.10    468         194.337       6.131152
+ENSMUST00000182886.8    4047        3726.417      16.866773
+ENSMUST00000238988.2    3353        3032.417      19.736995
+ENSMUST00000115123.9    4226        3905.417      40.910626
+ENSMUST00000016631.14   4851        4530.417       3.612108
+ENSMUST00000151602.4     992         671.427       2.894139
+ENSMUST00000080933.13   5669        5348.417      20.189698
+ENSMUST00000108325.9    3183        2862.417      20.002417
+                               TranscriptID                GeneID
+ENSMUST00000113696.8   ENSMUST00000113696.8 ENSMUSG00000032366.16
+ENSMUST00000097786.10 ENSMUST00000097786.10 ENSMUSG00000026131.22
+ENSMUST00000116371.8   ENSMUST00000116371.8 ENSMUSG00000005417.18
+ENSMUST00000113705.8   ENSMUST00000113705.8 ENSMUSG00000032366.16
+ENSMUST00000153136.2   ENSMUST00000153136.2 ENSMUSG00000026987.17
+ENSMUST00000223999.2   ENSMUST00000223999.2 ENSMUSG00000025290.18
+ENSMUST00000092887.11 ENSMUST00000092887.11 ENSMUSG00000000631.21
+ENSMUST00000050905.16 ENSMUST00000050905.16 ENSMUSG00000032366.16
+ENSMUST00000182812.8   ENSMUST00000182812.8 ENSMUSG00000035325.17
+ENSMUST00000101454.9   ENSMUST00000101454.9 ENSMUSG00000031328.17
+ENSMUST00000111623.9   ENSMUST00000111623.9 ENSMUSG00000016487.16
+ENSMUST00000106460.9   ENSMUST00000106460.9 ENSMUSG00000020758.16
+ENSMUST00000112384.10 ENSMUST00000112384.10 ENSMUSG00000025290.18
+ENSMUST00000182886.8   ENSMUST00000182886.8 ENSMUSG00000035325.17
+ENSMUST00000238988.2   ENSMUST00000238988.2 ENSMUSG00000032536.13
+ENSMUST00000115123.9   ENSMUST00000115123.9 ENSMUSG00000022791.20
+ENSMUST00000016631.14 ENSMUST00000016631.14 ENSMUSG00000016487.16
+ENSMUST00000151602.4   ENSMUST00000151602.4 ENSMUSG00000051586.18
+ENSMUST00000080933.13 ENSMUST00000080933.13 ENSMUSG00000028284.14
+ENSMUST00000108325.9   ENSMUST00000108325.9 ENSMUSG00000003617.17
+                      TranscriptSymbol GeneSymbol EntrezID     logFC         t
+ENSMUST00000113696.8          Tpm1-212       Tpm1    22003  6.486538  18.06053
+ENSMUST00000097786.10          Dst-202        Dst    13518 10.053352  15.76129
+ENSMUST00000116371.8         Mprip-204      Mprip    26936 -7.680833 -21.66116
+ENSMUST00000113705.8          Tpm1-215       Tpm1    22003 -4.060545 -13.81722
+ENSMUST00000153136.2         Baz2b-213      Baz2b   407823 -2.905632 -15.32018
+ENSMUST00000223999.2         Rps24-205      Rps24    20088 -3.877061 -16.05459
+ENSMUST00000092887.11       Myo18a-203     Myo18a   360013  8.619093  17.58371
+ENSMUST00000050905.16         Tpm1-203       Tpm1    22003  4.607455  13.18956
+ENSMUST00000182812.8        Sec31a-208     Sec31a    69162 -5.960175 -18.31754
+ENSMUST00000101454.9          Flna-202       Flna   192176  7.877288  17.04576
+ENSMUST00000111623.9       Ppfibp1-202    Ppfibp1    67533 -3.909690 -18.05886
+ENSMUST00000106460.9         Itgb4-204      Itgb4   192897 -6.913488 -17.85856
+ENSMUST00000112384.10        Rps24-201      Rps24    20088  4.124033  13.39067
+ENSMUST00000182886.8        Sec31a-210     Sec31a    69162  7.691280  14.68359
+ENSMUST00000238988.2         Trak1-215      Trak1    67095 -6.389912 -14.97343
+ENSMUST00000115123.9          Tnk2-204       Tnk2    51789 -6.480377 -11.56945
+ENSMUST00000016631.14      Ppfibp1-201    Ppfibp1    67533  2.427456  14.72839
+ENSMUST00000151602.4        Mical3-206     Mical3   194401 -3.236574 -11.39845
+ENSMUST00000080933.13       Map3k7-202     Map3k7    26409 -2.728790 -14.30489
+ENSMUST00000108325.9            Cp-203         Cp    12870  8.427299  13.29319
+                           P.Value          FDR
+ENSMUST00000113696.8  5.097375e-33 1.166636e-28
+ENSMUST00000097786.10 1.716932e-26 1.316074e-22
+ENSMUST00000116371.8  1.725094e-26 1.316074e-22
+ENSMUST00000113705.8  8.722972e-25 4.021458e-21
+ENSMUST00000153136.2  8.785463e-25 4.021458e-21
+ENSMUST00000223999.2  8.511164e-24 3.246583e-20
+ENSMUST00000092887.11 1.369562e-23 4.477880e-20
+ENSMUST00000050905.16 1.731103e-23 4.952470e-20
+ENSMUST00000182812.8  2.285726e-23 5.812601e-20
+ENSMUST00000101454.9  6.726396e-22 1.539470e-18
+ENSMUST00000111623.9  2.871907e-21 5.975394e-18
+ENSMUST00000106460.9  9.647834e-21 1.840083e-17
+ENSMUST00000112384.10 5.560696e-20 9.789819e-17
+ENSMUST00000182886.8  1.988681e-19 3.235780e-16
+ENSMUST00000238988.2  2.120711e-19 3.235780e-16
+ENSMUST00000115123.9  2.582983e-18 3.694796e-15
+ENSMUST00000016631.14 4.420876e-18 5.951800e-15
+ENSMUST00000151602.4  3.581388e-17 4.553735e-14
+ENSMUST00000080933.13 6.851047e-17 8.252628e-14
+ENSMUST00000108325.9  7.463886e-17 8.541298e-14</code></pre>
+<pre class="r"><code>table(out.transcript.LPvsBa$FDR &lt; 0.05)</code></pre>
+<pre><code>
+FALSE  TRUE 
+20409  2478 </code></pre>
+<pre class="r"><code>out.transcript.LPvsBa[out.transcript.LPvsBa$GeneSymbol %in% c(&#39;Foxp1&#39;,&#39;Ezh2&#39;,&#39;Asap1&#39;),]</code></pre>
+<pre><code>                      Length EffectiveLength Overdispersion
+ENSMUST00000175838.2     420         163.758       1.159129
+ENSMUST00000177229.8    1848        1527.417      16.866677
+ENSMUST00000177083.8    4415        4094.417      13.839170
+ENSMUST00000110115.9    4535        4214.417      18.135542
+ENSMUST00000124058.8    1213         892.417       3.563683
+ENSMUST00000081721.13   2787        2466.417       6.653742
+ENSMUST00000154163.9     853         533.020       1.566080
+ENSMUST00000092648.13   2115        1794.417       4.728582
+ENSMUST00000176565.8    3727        3406.417       8.946068
+ENSMUST00000177371.8    6164        5843.417       3.344945
+ENSMUST00000177410.2     618         309.424       1.435156
+ENSMUST00000114618.8    2775        2454.417       9.490129
+ENSMUST00000177437.8    2468        2147.417       5.693538
+ENSMUST00000177307.8    2121        1800.417       6.298976
+ENSMUST00000113322.9    7177        6856.417       5.676970
+ENSMUST00000177227.8     967         646.467       1.373630
+ENSMUST00000113321.7    1176         855.417       1.235459
+ENSMUST00000175799.8    4237        3916.417      12.753683
+ENSMUST00000170327.3     834         514.204       1.613701
+                               TranscriptID                GeneID
+ENSMUST00000175838.2   ENSMUST00000175838.2 ENSMUSG00000030067.18
+ENSMUST00000177229.8   ENSMUST00000177229.8 ENSMUSG00000030067.18
+ENSMUST00000177083.8   ENSMUST00000177083.8 ENSMUSG00000022377.17
+ENSMUST00000110115.9   ENSMUST00000110115.9 ENSMUSG00000022377.17
+ENSMUST00000124058.8   ENSMUST00000124058.8 ENSMUSG00000030067.18
+ENSMUST00000081721.13 ENSMUST00000081721.13 ENSMUSG00000029687.17
+ENSMUST00000154163.9   ENSMUST00000154163.9 ENSMUSG00000030067.18
+ENSMUST00000092648.13 ENSMUST00000092648.13 ENSMUSG00000029687.17
+ENSMUST00000176565.8   ENSMUST00000176565.8 ENSMUSG00000030067.18
+ENSMUST00000177371.8   ENSMUST00000177371.8 ENSMUSG00000022377.17
+ENSMUST00000177410.2   ENSMUST00000177410.2 ENSMUSG00000030067.18
+ENSMUST00000114618.8   ENSMUST00000114618.8 ENSMUSG00000029687.17
+ENSMUST00000177437.8   ENSMUST00000177437.8 ENSMUSG00000030067.18
+ENSMUST00000177307.8   ENSMUST00000177307.8 ENSMUSG00000030067.18
+ENSMUST00000113322.9   ENSMUST00000113322.9 ENSMUSG00000030067.18
+ENSMUST00000177227.8   ENSMUST00000177227.8 ENSMUSG00000030067.18
+ENSMUST00000113321.7   ENSMUST00000113321.7 ENSMUSG00000030067.18
+ENSMUST00000175799.8   ENSMUST00000175799.8 ENSMUSG00000022377.17
+ENSMUST00000170327.3   ENSMUST00000170327.3 ENSMUSG00000029687.17
+                      TranscriptSymbol GeneSymbol EntrezID       logFC
+ENSMUST00000175838.2         Foxp1-216      Foxp1   108655  2.34251465
+ENSMUST00000177229.8         Foxp1-225      Foxp1   108655 -4.98978294
+ENSMUST00000177083.8         Asap1-216      Asap1    13196  1.79727237
+ENSMUST00000110115.9         Asap1-203      Asap1    13196 -2.48945656
+ENSMUST00000124058.8         Foxp1-210      Foxp1   108655 -2.24576581
+ENSMUST00000081721.13         Ezh2-201       Ezh2    14056 -0.75797128
+ENSMUST00000154163.9         Foxp1-214      Foxp1   108655  0.77794988
+ENSMUST00000092648.13         Ezh2-202       Ezh2    14056  0.59402664
+ENSMUST00000176565.8         Foxp1-220      Foxp1   108655  0.66360968
+ENSMUST00000177371.8         Asap1-217      Asap1    13196 -0.43202853
+ENSMUST00000177410.2         Foxp1-229      Foxp1   108655 -0.59259459
+ENSMUST00000114618.8          Ezh2-204       Ezh2    14056  0.37909712
+ENSMUST00000177437.8         Foxp1-230      Foxp1   108655 -0.22543910
+ENSMUST00000177307.8         Foxp1-228      Foxp1   108655  0.27214486
+ENSMUST00000113322.9         Foxp1-204      Foxp1   108655 -0.14755876
+ENSMUST00000177227.8         Foxp1-224      Foxp1   108655 -0.21548349
+ENSMUST00000113321.7         Foxp1-203      Foxp1   108655 -0.29769900
+ENSMUST00000175799.8         Asap1-206      Asap1    13196  0.28839692
+ENSMUST00000170327.3          Ezh2-211       Ezh2    14056 -0.08994926
+                               t      P.Value          FDR
+ENSMUST00000175838.2   7.2168036 3.491649e-10 7.264852e-08
+ENSMUST00000177229.8  -6.8464304 1.737724e-09 2.924360e-07
+ENSMUST00000177083.8   5.8461597 1.393955e-06 7.800355e-05
+ENSMUST00000110115.9  -5.7119886 2.080546e-06 1.082215e-04
+ENSMUST00000124058.8  -3.7360428 3.605017e-04 6.980374e-03
+ENSMUST00000081721.13 -3.4252951 1.696166e-03 2.227118e-02
+ENSMUST00000154163.9   2.8769595 5.214811e-03 4.867511e-02
+ENSMUST00000092648.13  2.6647326 1.194679e-02 8.705066e-02
+ENSMUST00000176565.8   2.3047633 2.392405e-02 1.386553e-01
+ENSMUST00000177371.8  -1.6523316 1.077297e-01 3.518754e-01
+ENSMUST00000177410.2  -1.3924629 1.678613e-01 4.482622e-01
+ENSMUST00000114618.8   1.3918968 1.735053e-01 4.569113e-01
+ENSMUST00000177437.8  -1.3275143 1.883304e-01 4.774180e-01
+ENSMUST00000177307.8   1.2858646 2.024119e-01 4.940746e-01
+ENSMUST00000113322.9  -0.9334122 3.535766e-01 6.568431e-01
+ENSMUST00000177227.8  -0.8974528 3.723243e-01 6.748010e-01
+ENSMUST00000113321.7  -0.8811142 3.810466e-01 6.813697e-01
+ENSMUST00000175799.8   0.8257307 4.147483e-01 7.097249e-01
+ENSMUST00000170327.3  -0.3597590 7.213790e-01 8.894186e-01</code></pre>
+<pre class="r"><code>gene.unique &lt;- out.gene.LPvsBa[out.gene.LPvsBa$FDR &lt; 0.05,&#39;GeneSymbol&#39;]
+tx.unique &lt;- 
+  out.transcript.LPvsBa[out.transcript.LPvsBa$FDR &lt; 0.05 &amp; 
+                          out.transcript.LPvsBa$GeneSymbol %in% gene.unique,&quot;GeneSymbol&quot;]
+table(table(tx.unique))</code></pre>
+<pre><code>
+  1   2   3   4   5   6   7   8   9  14 
+356 671  92  24  17  10   2   2   2   1 </code></pre>
+<pre class="r"><code>x &lt;- as.data.table(out.transcript.LPvsBa[out.transcript.LPvsBa$FDR &lt; 0.05 &amp; 
+                                           out.transcript.LPvsBa$GeneSymbol %in% gene.unique,])
+
+x.sign &lt;- x[GeneSymbol %in% names(table(tx.unique)[table(tx.unique) == 2]),][,.(min = sign(min(logFC)),max = sign(max(logFC))),by = &#39;GeneSymbol&#39;]
+
+x.sign[,table(min,max)]</code></pre>
+<pre><code>    max
+min   -1   1
+  -1   8 656
+  1    0   7</code></pre>
+<pre class="r"><code>out.gene.LPvsBa[out.gene.LPvsBa$GeneSymbol %in% c(&#39;Eya2&#39;),]</code></pre>
+<pre><code>                                     GeneID GeneSymbol EntrezID NExons        F
+ENSMUSG00000017897.19 ENSMUSG00000017897.19       Eya2    14049      4 97.52174
+                           P.Value          FDR
+ENSMUSG00000017897.19 3.306905e-16 1.389819e-13</code></pre>
+<pre class="r"><code>out.transcript.LPvsBa[out.transcript.LPvsBa$GeneSymbol %in% c(&#39;Eya2&#39;),]</code></pre>
+<pre><code>                      Length EffectiveLength Overdispersion
+ENSMUST00000063433.8    2460        2139.417       4.602893
+ENSMUST00000088132.13   2447        2126.417       5.137227
+ENSMUST00000150638.8     679         364.332       3.585353
+ENSMUST00000150669.2     959         638.483       1.635973
+                               TranscriptID                GeneID
+ENSMUST00000063433.8   ENSMUST00000063433.8 ENSMUSG00000017897.19
+ENSMUST00000088132.13 ENSMUST00000088132.13 ENSMUSG00000017897.19
+ENSMUST00000150638.8   ENSMUST00000150638.8 ENSMUSG00000017897.19
+ENSMUST00000150669.2   ENSMUST00000150669.2 ENSMUSG00000017897.19
+                      TranscriptSymbol GeneSymbol EntrezID       logFC
+ENSMUST00000063433.8          Eya2-201       Eya2    14049  5.12190973
+ENSMUST00000088132.13         Eya2-202       Eya2    14049 -5.05849875
+ENSMUST00000150638.8          Eya2-205       Eya2    14049 -0.54906758
+ENSMUST00000150669.2          Eya2-206       Eya2    14049  0.09507216
+                                t      P.Value          FDR
+ENSMUST00000063433.8   15.0337548 4.429212e-16 6.335710e-13
+ENSMUST00000088132.13 -14.2480934 1.993491e-15 2.172620e-12
+ENSMUST00000150638.8   -1.2311373 2.272202e-01 5.255040e-01
+ENSMUST00000150669.2    0.2523196 8.024035e-01 9.303246e-01</code></pre>
+<pre class="r"><code>go &lt;- goana(de = as.character(out.gene.LPvsBa[out.gene.LPvsBa$FDR &lt; 0.05,&quot;EntrezID&quot;]),species = &quot;Mm&quot;)
+top.go &lt;- topGO(go,number = Inf,ontology = &quot;BP&quot;)
+head(top.go,20)</code></pre>
+<pre><code>                                                    Term Ont     N   DE
+GO:0009987                              cellular process  BP 17623 1092
+GO:0016043               cellular component organization  BP  6506  562
+GO:0071840 cellular component organization or biogenesis  BP  6717  573
+GO:0065007                         biological regulation  BP 12967  847
+GO:0008152                             metabolic process  BP 11602  781
+GO:0050789              regulation of biological process  BP 12570  820
+GO:0050794                regulation of cellular process  BP 11938  793
+GO:0044238                     primary metabolic process  BP 10134  706
+GO:0051179                                  localization  BP  5383  466
+GO:0044237                    cellular metabolic process  BP 10118  701
+GO:0051641                         cellular localization  BP  3560  358
+GO:0006807           nitrogen compound metabolic process  BP  9563  673
+GO:0071704           organic substance metabolic process  BP 11172  742
+GO:0006996                        organelle organization  BP  3584  355
+GO:0048518     positive regulation of biological process  BP  6679  526
+GO:0048522       positive regulation of cellular process  BP  6141  495
+GO:0051128 regulation of cellular component organization  BP  2632  286
+GO:0032502                         developmental process  BP  6904  520
+GO:0048856              anatomical structure development  BP  6478  496
+GO:0048523       negative regulation of cellular process  BP  5339  433
+                    P.DE
+GO:0009987 2.060894e-110
+GO:0016043  1.538853e-77
+GO:0071840  1.880709e-77
+GO:0065007  7.639252e-70
+GO:0008152  3.071768e-66
+GO:0050789  3.371151e-65
+GO:0050794  3.817895e-65
+GO:0044238  4.059325e-62
+GO:0051179  7.159048e-61
+GO:0044237  2.472169e-60
+GO:0051641  6.215446e-60
+GO:0006807  2.504505e-59
+GO:0071704  9.401887e-58
+GO:0006996  1.062420e-57
+GO:0048518  7.026043e-57
+GO:0048522  1.229316e-55
+GO:0051128  2.523879e-53
+GO:0032502  1.018889e-49
+GO:0048856  7.848785e-49
+GO:0048523  1.272948e-47</code></pre>
+</div>
+</div>
+<div id="plots" class="section level1">
+<h1>Plots</h1>
+<pre class="r"><code>bcv &lt;- estimateDisp(dge.filtr,design = design)
+
+fig.bcv &lt;- wrap_elements(full = ~ foo.bcv(bcv,ylim = c(0,3)))
+file.bcv &lt;- tempfile(&quot;bcv&quot;,fileext = &#39;.png&#39;)
+png(file.bcv,width = 4,height = 3,units = &#39;in&#39;,res = 300)
+par(mar = c(3, 3, 2, 0.25),mgp = c(2,1,0))
+fig.bcv
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+<pre class="r"><code>fig.bcv &lt;- readPNG(file.bcv, native = TRUE)
+foo.bcv(bcv,ylim = c(0,3))</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_plots_voom-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>bcv.raw &lt;- estimateDisp(dge.raw.filtr,design = design)
+
+
+fig.bcv.raw &lt;- wrap_elements(full = ~ foo.bcv(bcv.raw,ylim = c(0,3)))
+file.bcv.raw &lt;- tempfile(&quot;bcvraw&quot;,fileext = &#39;.png&#39;)
+png(file.bcv.raw,width = 4,height = 3,units = &#39;in&#39;,res = 300)
+par(mar = c(3, 3, 2, 0.25),mgp = c(2,1,0))
+fig.bcv.raw
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+<pre class="r"><code>fig.bcv.raw &lt;- readPNG(file.bcv.raw, native = TRUE)
+foo.bcv(bcv.raw,ylim = c(0,3))</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_plots_voom_raw-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>fig.splice &lt;- 
+  wrap_elements(full = ~ plotSplice2(ds.LPvsBa,geneid = &#39;Foxp1&#39;,
+                                     genecolname = &#39;GeneSymbol&#39;,
+                                     coef = &#39;-1*Basal 1*LP&#39;,
+                                     exonlabel = &#39;TranscriptSymbol&#39;,
+                                     ylim = c(-6,4)))
+file.splice &lt;- tempfile(&quot;splice&quot;,fileext = &#39;.png&#39;)
+png(file.splice,width = 4,height = 3,units = &#39;in&#39;,res = 300)
+par(mar = c(4, 3, 2, 0.25),mgp = c(2,1,0))
+fig.splice
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+<pre class="r"><code>fig.splice &lt;- readPNG(file.splice, native = TRUE)
+plotSplice2(ds.LPvsBa,geneid = &#39;Foxp1&#39;,
+            genecolname = &#39;GeneSymbol&#39;,
+            coef = &#39;-1*Basal 1*LP&#39;,
+            exonlabel = &#39;TranscriptSymbol&#39;,
+            ylim = c(-6,4))</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_plots_splice-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>file.barplot &lt;- tempfile(&quot;barplot&quot;,fileext = &#39;.png&#39;)
+png(file.barplot,width = 4,height = 3,units = &#39;in&#39;,res = 300)
+plot.barplot(top.go,top = 10)
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+<pre class="r"><code>fig.barplot &lt;- readPNG(file.barplot, native = TRUE)
+plot.barplot(top.go,top = 10)</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_plots_go-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>BAM &lt;- file.path(path.bam,paste0(dge.filtr$samples$sample,&#39;.bam&#39;))
+BW &lt;- file.path(path.bw,paste0(dge.filtr$samples$sample,&#39;.bw&#39;))
+
+txdb &lt;- makeTxDbFromGRanges(gtf[(gtf$transcript_id %in% gtf.tx$transcript_id) &amp; 
+                                  (gtf$transcript_id %in% ds.LPvsBa$genes$TranscriptID)])</code></pre>
+<pre><code>Warning in call_fun_in_txdbmaker(&quot;makeTxDbFromGRanges&quot;, ...): makeTxDbFromGRanges() has moved to the txdbmaker package. Please call
+  txdbmaker::makeTxDbFromGRanges() to get rid of this warning.</code></pre>
+<pre><code>Warning in .get_cds_IDX(mcols0$type, mcols0$phase): The &quot;phase&quot; metadata column contains non-NA values for features of type
+  stop_codon. This information was ignored.</code></pre>
+<pre class="r"><code>geneTrack &lt;-
+  GeneRegionTrack(txdb,showId=TRUE,
+                  just.group = &#39;right&#39;,
+                  background.title = &quot;white&quot;,
+                  min.height=10,
+                  fill = &#39;grey&#39;,
+                  name = &#39;Transcripts&#39;,
+                  col.title = &#39;black&#39;,
+                  fontcolor.group = &#39;black&#39;)
+
+ranges(geneTrack)$symbol &lt;-
+  gtf.tx$transcript_name[match(ranges(geneTrack)$symbol,gtf.tx$transcript_id)]
+
+param &lt;- readParam(pe = &#39;both&#39;,restrict = paste0(&quot;chr&quot;, c(1:19, &quot;X&quot;, &quot;Y&quot;)))
+
+geneTrack.left &lt;- geneTrack
+geneTrack.left@dp@pars$just.group &lt;- &#39;left&#39;
+
+Eya2 &lt;- tempfile(&quot;Eya2&quot;,fileext = &#39;png&#39;)
+png(Eya2,width = 4,height = 6,res = 300,units = &#39;in&#39;)
+plotCoverage(gr = GRanges(&#39;chr2&#39;,IRanges(165415686,165545256)),
+             x = BAM,
+             fontsize = 8,
+             lib.sizes = dge.filtr$samples$lib.size*dge.filtr$samples$norm.factors,
+             param = param,
+             anno = geneTrack.left,
+             fill = c(rep(&#39;#df5b6d&#39;,3),rep(&#39;#5ece5a&#39;,3),rep(&quot;#2f95e2&quot;,3)),
+             ylim = c(-0.75,6.75),
+             yTicksAt = c(0,3,6),
+             labels = with(dge.filtr$samples,paste(group,pool,sep = &#39;.&#39;)))
+dev.off()</code></pre>
+<pre><code>png 
+  2 </code></pre>
+<pre class="r"><code>fig.Eya2 &lt;- readPNG(Eya2, native = TRUE)
+
+plotCoverage(gr = GRanges(&#39;chr2&#39;,IRanges(165415686,165545256)),
+             x = BAM,
+             fontsize = 8,
+             lib.sizes = dge.filtr$samples$lib.size*dge.filtr$samples$norm.factors,
+             param = param,
+             anno = geneTrack.left,
+             fill = c(rep(&#39;#df5b6d&#39;,3),rep(&#39;#5ece5a&#39;,3),rep(&quot;#2f95e2&quot;,3)),
+             ylim = c(-0.75,6.75),
+             yTicksAt = c(0,3,6),
+             labels = with(dge.filtr$samples,paste(group,pool,sep = &#39;.&#39;)))</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_plots_coverage-1.png" width="1200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="output-files" class="section level1">
+<h1>Output files</h1>
+<pre class="r"><code>fig.ds &lt;- wrap_plots(A = wrap_elements(fig.bcv.raw),
+                     B = wrap_elements(fig.bcv),
+                     C = wrap_elements(fig.barplot),
+                     D = wrap_elements(fig.splice),
+                     E = wrap_elements(fig.Eya2),
+                     design = c(area(1,1),area(1,2),
+                                area(2,1),area(3,1),area(2,2,3,2)),
+                     heights = c(3,3,3)/8) +
+  plot_annotation(tag_levels = &#39;a&#39;,
+                  theme = theme(plot.tag = element_text(size = 8)))
+fig.ds</code></pre>
+<p><img src="figure/main-casestudy.Rmd/mouse_output-1.png" width="2400" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggsave(plot = fig.ds,
+       filename = file.path(path.misc,&#39;Figure-CaseStudy.pdf&#39;),
+       device = &#39;pdf&#39;,width = 8,height = 9,units = &#39;in&#39;,dpi = 300)</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.4.1 (2024-06-14)
+Platform: x86_64-pc-linux-gnu
+Running under: Red Hat Enterprise Linux 9.3 (Plow)
+
+Matrix products: default
+BLAS:   /stornext/System/data/software/rhel/9/base/tools/R/4.4.1/lib64/R/lib/libRblas.so 
+LAPACK: /stornext/System/data/software/rhel/9/base/tools/R/4.4.1/lib64/R/lib/libRlapack.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Australia/Melbourne
+tzcode source: system (glibc)
+
+attached base packages:
+[1] grid      stats4    stats     graphics  grDevices datasets  utils    
+[8] methods   base     
+
+other attached packages:
+ [1] patchwork_1.3.0                        
+ [2] png_0.1-8                              
+ [3] stringr_1.5.1                          
+ [4] ggplot2_3.5.1                          
+ [5] BiocParallel_1.38.0                    
+ [6] csaw_1.38.0                            
+ [7] SummarizedExperiment_1.34.0            
+ [8] MatrixGenerics_1.16.0                  
+ [9] matrixStats_1.5.0                      
+[10] TxDb.Mmusculus.UCSC.mm39.refGene_3.19.0
+[11] Gviz_1.48.0                            
+[12] data.table_1.17.0                      
+[13] GenomicFeatures_1.56.0                 
+[14] AnnotationDbi_1.66.0                   
+[15] Biobase_2.64.0                         
+[16] Rsubread_2.18.0                        
+[17] rtracklayer_1.64.0                     
+[18] GenomicRanges_1.56.2                   
+[19] GenomeInfoDb_1.40.1                    
+[20] IRanges_2.38.1                         
+[21] S4Vectors_0.42.1                       
+[22] BiocGenerics_0.50.0                    
+[23] edgeR_4.5.9                            
+[24] limma_3.63.9                           
+[25] workflowr_1.7.1                        
+
+loaded via a namespace (and not attached):
+  [1] later_1.4.1              BiocIO_1.14.0            bitops_1.0-9            
+  [4] filelock_1.0.3           tibble_3.2.1             R.oo_1.27.0             
+  [7] XML_3.99-0.18            rpart_4.1.23             lifecycle_1.0.4         
+ [10] httr2_1.1.0              rprojroot_2.0.4          processx_3.8.6          
+ [13] lattice_0.22-6           vroom_1.6.5              ensembldb_2.28.1        
+ [16] backports_1.5.0          magrittr_2.0.3           Hmisc_5.2-2             
+ [19] sass_0.4.9               rmarkdown_2.29           jquerylib_0.1.4         
+ [22] yaml_2.3.10              metapod_1.12.0           httpuv_1.6.15           
+ [25] DBI_1.2.3                RColorBrewer_1.1-3       abind_1.4-8             
+ [28] zlibbioc_1.50.0          R.utils_2.13.0           AnnotationFilter_1.28.0 
+ [31] biovizBase_1.52.0        RCurl_1.98-1.16          nnet_7.3-19             
+ [34] VariantAnnotation_1.50.0 rappdirs_0.3.3           git2r_0.35.0            
+ [37] GenomeInfoDbData_1.2.12  codetools_0.2-20         DelayedArray_0.30.1     
+ [40] xml2_1.3.7               tidyselect_1.2.1         UCSC.utils_1.0.0        
+ [43] farver_2.1.2             BiocFileCache_2.12.0     base64enc_0.1-3         
+ [46] GenomicAlignments_1.40.0 jsonlite_1.9.1           Formula_1.2-5           
+ [49] systemfonts_1.2.1        tools_4.4.1              progress_1.2.3          
+ [52] ragg_1.3.3               Rcpp_1.0.14              glue_1.8.0              
+ [55] gridExtra_2.3            SparseArray_1.4.8        xfun_0.51               
+ [58] dplyr_1.1.4              withr_3.0.2              BiocManager_1.30.25     
+ [61] fastmap_1.2.0            latticeExtra_0.6-30      callr_3.7.6             
+ [64] digest_0.6.37            R6_2.6.1                 gridGraphics_0.5-1      
+ [67] textshaping_1.0.0        colorspace_2.1-1         GO.db_3.19.1            
+ [70] jpeg_0.1-10              dichromat_2.0-0.1        biomaRt_2.60.1          
+ [73] RSQLite_2.3.9            R.methodsS3_1.8.2        generics_0.1.3          
+ [76] renv_1.1.2               prettyunits_1.2.0        httr_1.4.7              
+ [79] htmlwidgets_1.6.4        S4Arrays_1.4.1           org.Mm.eg.db_3.19.1     
+ [82] whisker_0.4.1            pkgconfig_2.0.3          gtable_0.3.6            
+ [85] blob_1.2.4               XVector_0.44.0           htmltools_0.5.8.1       
+ [88] ProtGenerics_1.36.0      scales_1.3.0             knitr_1.49              
+ [91] rstudioapi_0.17.1        tzdb_0.4.0               rjson_0.2.23            
+ [94] checkmate_2.3.2          curl_6.2.1               cachem_1.1.0            
+ [97] parallel_4.4.1           foreign_0.8-86           restfulr_0.0.15         
+[100] pillar_1.10.1            vctrs_0.6.5              promises_1.3.2          
+[103] dbplyr_2.5.0             cluster_2.1.6            htmlTable_2.4.3         
+[106] evaluate_1.0.3           readr_2.1.5              cli_3.6.4               
+[109] locfit_1.5-9.12          compiler_4.4.1           Rsamtools_2.20.0        
+[112] rlang_1.1.5              crayon_1.5.3             labeling_0.4.3          
+[115] interp_1.1-6             ps_1.9.0                 getPass_0.2-4           
+[118] fs_1.6.5                 stringi_1.8.4            deldir_2.0-4            
+[121] txdbmaker_1.0.1          munsell_0.5.1            Biostrings_2.72.1       
+[124] lazyeval_0.2.2           Matrix_1.7-0             BSgenome_1.72.0         
+[127] hms_1.1.3                bit64_4.6.0-1            KEGGREST_1.44.1         
+[130] statmod_1.5.0            memoise_2.0.1            bslib_0.9.0             
+[133] bit_4.6.0               </code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

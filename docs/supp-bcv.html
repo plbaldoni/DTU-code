@@ -12,7 +12,7 @@
 <meta name="author" content="Pedro L. Baldoni" />
 
 
-<title>Pre-processing the mouse dataset</title>
+<title>Simulation Study - Supplementary Results (BCV plots)</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -355,7 +355,8 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Pre-processing the mouse dataset</h1>
+<h1 class="title toc-ignore">Simulation Study - Supplementary Results
+(BCV plots)</h1>
 <h4 class="author">Pedro L. Baldoni</h4>
 <h4 class="date">27 August, 2025</h4>
 
@@ -652,9 +653,9 @@ have uncommitted changes.
 <div id="versions" class="tab-pane fade">
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/mouse-howto.Rmd</code>) and HTML
-(<code>docs/mouse-howto.html</code>) files. If you’ve configured a
-remote Git repository (see <code>?wflow_git_remote</code>), click on the
+made to the R Markdown (<code>analysis/supp-bcv.Rmd</code>) and HTML
+(<code>docs/supp-bcv.html</code>) files. If you’ve configured a remote
+Git repository (see <code>?wflow_git_remote</code>), click on the
 hyperlinks in the table below to view the files as they were in that
 past version.
 </p>
@@ -685,7 +686,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/59512356c3355cef102f7ba02126a94e96824028/analysis/mouse-howto.Rmd" target="_blank">5951235</a>
+<a href="https://github.com/plbaldoni/DTU-code/blob/59512356c3355cef102f7ba02126a94e96824028/analysis/supp-bcv.Rmd" target="_blank">5951235</a>
 </td>
 <td>
 Pedro Baldoni
@@ -697,40 +698,6 @@ Pedro Baldoni
 DTU paper revision
 </td>
 </tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/plbaldoni/DTU-code/cb83e0524b87b0193973af537a0163a946748ec5/docs/mouse-howto.html" target="_blank">cb83e05</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-04-08
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/40fd9aaa432a967d509e3bbfe6f491f48048c7e7/analysis/mouse-howto.Rmd" target="_blank">40fd9aa</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-04-08
-</td>
-<td>
-Adding new Rmd how-to
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -738,56 +705,208 @@ Adding new Rmd how-to
 </div>
 </div>
 </div>
-<p>Our case study is based on the paired-end Illumina short read RNA-seq
-experiment from the steady-state adult mouse mammary gland (<a
-href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227748">GSE227748</a>).</p>
-<p>All the RNA-seq experiments were quantified with <a
-href="https://salmon.readthedocs.io/">Salmon</a> version v1.10.2 with
-default options using the decoy-aware transcriptome index generated from
-the mouse Gencode annotation version M35 and the mm39 build of the mouse
-genome. To generate coverage plots, we have aligned RNA-seq experiments
-to the <em>GRCm39</em> reference genome with <a
-href="https://subread.sourceforge.net/">Subread</a> version v.2.0.6.</p>
-<div id="acessing-the-necessary-annotation" class="section level1">
-<h1>Acessing the necessary annotation</h1>
-<p>Download the Gencode annotation version M35 from <a
-href="https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/">this
-link</a> and place files in the directory
-<code>./data/annotation/mm39</code>. Files can be downloaded with the
-following command line:
-<code>wget -r -nd ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M35/*</code></p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<pre class="r"><code>knitr::opts_chunk$set(dev = &quot;png&quot;,
+                      dpi = 300,
+                      dev.args = list(type = &quot;cairo-png&quot;),
+                      root.dir = &#39;.&#39;,
+                      autodep = TRUE)
+
+options(knitr.kable.NA = &quot;-&quot;)</code></pre>
+<pre class="r"><code>library(edgeR)
+library(data.table)
+library(patchwork)
+library(ggplot2)</code></pre>
+<pre class="r"><code>path.misc &lt;- file.path(&#39;../misc/supp-bcv.Rmd&#39;)
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)</code></pre>
+<pre class="r"><code>bs &lt;- 8</code></pre>
+<pre class="r"><code>foo.bcv &lt;- function (y,
+                     xlab = &quot;Average log CPM&quot;,
+                     ylab = &quot;Biological coefficient of variation&quot;,
+                     pch = 16, cex = 0.2,
+                     col.common = &quot;red&quot;,
+                     col.trend = &quot;blue&quot;,
+                     col.tagwise = &quot;black&quot;,
+                     fontsize = 8, ...) {
+  if (!is(y, &quot;DGEList&quot;))
+    stop(&quot;y must be a DGEList.&quot;)
+  A &lt;- y$AveLogCPM
+  if (is.null(A))
+    A &lt;- aveLogCPM(y$counts, offset = getOffset(y))
+  disp &lt;- getDispersion(y)
+  if (is.null(disp))
+    stop(&quot;No dispersions to plot&quot;)
+  if (attr(disp, &quot;type&quot;) == &quot;common&quot;)
+    disp &lt;- rep_len(disp, length(A))
+  par(mar = c(3, 3, 0.5, 0.25),mgp = c(1.25,0.5,0))
+  plot(A, sqrt(disp), xlab = xlab, ylab = ylab, type = &quot;n&quot;,
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       cex.main = fontsize/12,
+       ...)
+  labels &lt;- cols &lt;- lty &lt;- pt &lt;- NULL
+  if (!is.null(y$tagwise.dispersion)) {
+    points(A, sqrt(y$tagwise.dispersion), pch = pch, cex = cex,
+           col = col.tagwise)
+    labels &lt;- c(labels, &quot;Tagwise&quot;)
+    cols &lt;- c(cols, col.tagwise)
+    lty &lt;- c(lty, -1)
+    pt &lt;- c(pt, pch)
+  }
+  if (!is.null(y$common.dispersion)) {
+    abline(h = sqrt(y$common.dispersion), col = col.common,
+           lwd = 2)
+    labels &lt;- c(labels, &quot;Common&quot;)
+    cols &lt;- c(cols, col.common)
+    lty &lt;- c(lty, 1)
+    pt &lt;- c(pt, -1)
+  }
+  if (!is.null(y$trended.dispersion)) {
+    o &lt;- order(A)
+    lines(A[o], sqrt(y$trended.dispersion)[o], col = col.trend,
+          lwd = 2)
+    labels &lt;- c(labels, &quot;Trend&quot;)
+    cols &lt;- c(cols, col.trend)
+    lty &lt;- c(lty, 1)
+    pt &lt;- c(pt, -1)
+  }
+  legend(&quot;topright&quot;, legend = labels, lty = lty, pch = pt,
+         pt.cex = cex, lwd = 2, col = cols,cex = fontsize/12)
+}
+
+plot.voom &lt;- function(fit,fontsize = 8,...){
+  par(mar = c(3, 3, 0.5, 0.25),mgp = c(1.25,0.5,0))
+  plot(x = fit$voom.xy$x,
+       y = fit$voom.xy$y,
+       xlab = fit$voom.xy$xlab,
+       ylab = fit$voom.xy$ylab,
+       pch = fit$voom.xy$pch,
+       cex = fit$voom.xy$cex,
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       cex.main = fontsize/12,...)
+  lines(fit$voom.line,col=&quot;red&quot;,lty=1)
+}</code></pre>
 </div>
-<div id="creating-the-reference-genome-and-transcriptome"
-class="section level1">
-<h1>Creating the reference genome and transcriptome</h1>
-<ol style="list-style-type: decimal">
-<li><p>Run the script <code>code/mouse/salmon-index/buildIndex.sh</code>
-to build <em>Salmon</em>’s transcriptome index. This script uses the
-following modules: <em>Salmon</em>, <em>MashMap</em>, <em>bedtools</em>
-and the <a
-href="https://github.com/COMBINE-lab/SalmonTools/blob/master/scripts/generateDecoyTranscriptome.sh">generateDecoyTranscriptome.sh</a>
-script.</p></li>
-<li><p>Run the script <code>code/mouse/subread-index/buildIndex.R</code>
-to build the <em>Subread</em> index.</p></li>
-</ol>
+<div id="data-loading" class="section level2">
+<h2>Data loading</h2>
+<pre class="r"><code>cs.5 &lt;- catchSalmon(list.dirs(&#39;../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon&#39;,recursive = FALSE))</code></pre>
+<pre><code>Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupA_rep1_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupA_rep2_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupA_rep3_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupA_rep4_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupA_rep5_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupB_rep1_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupB_rep2_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupB_rep3_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupB_rep4_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon/groupB_rep5_R1, 147556 transcripts, 100 gibbs samples</code></pre>
+<pre class="r"><code>cs.3 &lt;- catchSalmon(list.dirs(&#39;../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon&#39;,recursive = FALSE))</code></pre>
+<pre><code>Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon/groupA_rep1_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon/groupA_rep2_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon/groupA_rep3_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon/groupB_rep1_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon/groupB_rep2_R1, 147556 transcripts, 100 gibbs samples
+Reading ../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon/groupB_rep3_R1, 147556 transcripts, 100 gibbs samples</code></pre>
+<pre class="r"><code>cs.real &lt;- catchSalmon(list.dirs(&#39;../output/mouse/salmon&#39;,recursive = FALSE)[1:6])</code></pre>
+<pre><code>Reading ../output/mouse/salmon/GSM7106766, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106767, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106768, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106769, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106770, 147556 transcripts, 100 gibbs samples
+Reading ../output/mouse/salmon/GSM7106771, 147556 transcripts, 100 gibbs samples</code></pre>
+<pre class="r"><code>min.count &lt;- 10
+min.total.count &lt;- 15
+span = 0.40</code></pre>
 </div>
-<div
-id="downloading-quantifying-and-aligning-the-illumina-paired-end-short-read-experiments"
-class="section level1">
-<h1>Downloading, quantifying, and aligning the Illumina paired-end short
-read experiments</h1>
-<ol style="list-style-type: decimal">
-<li><p>Run <code>./code/mouse/data/runAspera.sh</code> to download all
-necessary FASTQ files. This script uses the module
-<em>aspera</em>.</p></li>
-<li><p>Run <code>./code/mouse/salmon/runSalmon.sh</code> to quantify the
-RNA-seq reads with <em>Salmon</em>.</p></li>
-<li><p>Run the script <code>./code/mouse/subread/slurm.sh</code> to
-align the RNA-seq samples with <em>Subread</em>.</p></li>
-</ol>
-<p>The targets file for this experiment is provided in our GitHub
-repository for convenience. See file
-<code>./data/mouse/misc/targets.txt</code>.</p>
+</div>
+<div id="bcv-plots" class="section level1">
+<h1>BCV plots</h1>
+<pre class="r"><code>dge.3 &lt;- DGEList(counts = cs.3$counts/cs.3$annotation$Overdispersion,group = gl(2,3),genes = cs.3$annotation)
+rownames(dge.3) &lt;- limma::strsplit2(rownames(dge.3),&quot;\\|&quot;)[,1]
+colnames(dge.3) &lt;- basename(colnames(dge.3))
+
+dge.3.raw &lt;- DGEList(counts = cs.3$counts,group = gl(2,3))
+rownames(dge.3.raw) &lt;- limma::strsplit2(rownames(dge.3.raw),&quot;\\|&quot;)[,1]
+colnames(dge.3.raw) &lt;- basename(colnames(dge.3.raw))
+
+design.3 &lt;- model.matrix(~0+group,dge.3$samples)
+
+keep.3 &lt;- filterByExpr(dge.3,min.count = min.count, min.total.count = min.total.count)
+dge.3.filtr &lt;- dge.3[keep.3,,keep.lib.sizes = FALSE]
+dge.3.filtr &lt;- normLibSizes(dge.3.filtr)
+dge.3.filtr &lt;- estimateDisp(dge.3.filtr,design = design.3,span = span)
+
+keep.3.raw &lt;- filterByExpr(dge.3.raw,min.count = min.count, min.total.count = min.total.count)
+dge.3.raw.filtr &lt;- dge.3.raw[keep.3.raw,,keep.lib.sizes = FALSE]
+dge.3.raw.filtr &lt;- normLibSizes(dge.3.raw.filtr)
+dge.3.raw.filtr &lt;- estimateDisp(dge.3.raw.filtr,design = design.3,span = span)
+
+bcv.scaled.sim.3 &lt;- wrap_elements(full = ~foo.bcv(dge.3.filtr))
+bcv.raw.sim.3 &lt;- wrap_elements(full = ~foo.bcv(dge.3.raw.filtr))</code></pre>
+<pre class="r"><code>dge.5 &lt;- DGEList(counts = cs.5$counts/cs.5$annotation$Overdispersion,group = gl(2,5),genes = cs.5$annotation)
+rownames(dge.5) &lt;- limma::strsplit2(rownames(dge.5),&quot;\\|&quot;)[,1]
+colnames(dge.5) &lt;- basename(colnames(dge.5))
+
+dge.5.raw &lt;- DGEList(counts = cs.5$counts,group = gl(2,5))
+rownames(dge.5.raw) &lt;- limma::strsplit2(rownames(dge.5.raw),&quot;\\|&quot;)[,1]
+colnames(dge.5.raw) &lt;- basename(colnames(dge.5.raw))
+
+design.5 &lt;- model.matrix(~0+group,dge.5$samples)
+
+keep.5 &lt;- filterByExpr(dge.5,min.count = min.count, min.total.count = min.total.count)
+dge.5.filtr &lt;- dge.5[keep.5,,keep.lib.sizes = FALSE]
+dge.5.filtr &lt;- normLibSizes(dge.5.filtr)
+dge.5.filtr &lt;- estimateDisp(dge.5.filtr,design = design.5,span = span)
+
+keep.5.raw &lt;- filterByExpr(dge.5.raw,min.count = min.count, min.total.count = min.total.count)
+dge.5.raw.filtr &lt;- dge.5.raw[keep.5.raw,,keep.lib.sizes = FALSE]
+dge.5.raw.filtr &lt;- normLibSizes(dge.5.raw.filtr)
+dge.5.raw.filtr &lt;- estimateDisp(dge.5.raw.filtr,design = design.5,span = span)
+
+bcv.scaled.sim.5 &lt;- wrap_elements(full = ~foo.bcv(dge.5.filtr))
+bcv.raw.sim.5 &lt;- wrap_elements(full = ~foo.bcv(dge.5.raw.filtr))</code></pre>
+<pre class="r"><code>dge.real &lt;- DGEList(counts = cs.real$counts/cs.real$annotation$Overdispersion,group = gl(2,3),genes = cs.real$annotation)
+rownames(dge.real) &lt;- limma::strsplit2(rownames(dge.real),&quot;\\|&quot;)[,1]
+
+design.real &lt;- model.matrix(~0+group,dge.real$samples)
+
+keep.real &lt;- filterByExpr(dge.real,min.count = min.count, min.total.count = min.total.count)
+dge.real.filtr &lt;- dge.real[keep.real,,keep.lib.sizes = FALSE]
+dge.real.filtr &lt;- normLibSizes(dge.real.filtr)
+dge.real.filtr &lt;- estimateDisp(dge.real.filtr,design = design.real,span = span)
+
+dge.real.raw &lt;- DGEList(counts = cs.real$counts,group = gl(2,3))
+keep.real.raw &lt;- filterByExpr(dge.real.raw,min.count = min.count, min.total.count = min.total.count)
+dge.real.raw.filtr &lt;- dge.real.raw[keep.real.raw,,keep.lib.sizes = FALSE]
+dge.real.raw.filtr &lt;- normLibSizes(dge.real.raw.filtr)
+dge.real.raw.filtr &lt;- estimateDisp(dge.real.raw.filtr,design = design.real,span = span)
+
+bcv.scaled.real &lt;- wrap_elements(full = ~foo.bcv(dge.real.filtr,fontsize = bs))
+bcv.raw.real &lt;- wrap_elements(full = ~foo.bcv(dge.real.raw.filtr,fontsize = bs))</code></pre>
+<pre class="r"><code>fig.edgeR &lt;- wrap_plots(A = bcv.raw.real,
+                        B = bcv.scaled.real,
+                        C = bcv.raw.sim.3,
+                        D = bcv.scaled.sim.3,
+                        E = bcv.raw.sim.5,
+                        `F` = bcv.scaled.sim.5,
+                        design = c(area(1,1),area(1,2),
+                                   area(2,1),area(2,2),
+                                   area(3,1),area(3,2))) +
+  plot_annotation(tag_levels = &#39;a&#39;)  &amp;
+  theme(plot.tag = element_text(size = bs))
+
+fig.edgeR</code></pre>
+<p><img src="figure/supp-bcv.Rmd/unnamed-chunk-3-1.png" width="1800" style="display: block; margin: auto;" /></p>
+</div>
+<div id="output-files" class="section level1">
+<h1>Output files</h1>
+<pre class="r"><code>ggsave(plot = fig.edgeR,
+       filename = file.path(path.misc,&#39;SuppFigure-BCVPlots.png&#39;),
+       device = &#39;png&#39;,width = 6,height = 9,units = &#39;in&#39;,dpi = 300)</code></pre>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -820,24 +939,33 @@ attached base packages:
 [1] stats     graphics  grDevices datasets  utils     methods   base     
 
 other attached packages:
-[1] workflowr_1.7.1
+[1] ggplot2_3.5.1     patchwork_1.3.0   data.table_1.17.0 edgeR_4.5.9      
+[5] limma_3.63.9      workflowr_1.7.1  
 
 loaded via a namespace (and not attached):
- [1] jsonlite_1.9.1      compiler_4.4.1      BiocManager_1.30.25
- [4] renv_1.1.2          promises_1.3.2      Rcpp_1.0.14        
- [7] stringr_1.5.1       git2r_0.35.0        callr_3.7.6        
-[10] later_1.4.1         jquerylib_0.1.4     yaml_2.3.10        
-[13] fastmap_1.2.0       R6_2.6.1            knitr_1.49         
-[16] tibble_3.2.1        rprojroot_2.0.4     bslib_0.9.0        
-[19] pillar_1.10.1       rlang_1.1.5         cachem_1.1.0       
-[22] stringi_1.8.4       httpuv_1.6.15       xfun_0.51          
-[25] getPass_0.2-4       fs_1.6.5            sass_0.4.9         
-[28] cli_3.6.4           magrittr_2.0.3      ps_1.9.0           
-[31] digest_0.6.37       processx_3.8.6      rstudioapi_0.17.1  
-[34] lifecycle_1.0.4     vctrs_0.6.5         evaluate_1.0.3     
-[37] glue_1.8.0          whisker_0.4.1       rmarkdown_2.29     
-[40] httr_1.4.7          tools_4.4.1         pkgconfig_2.0.3    
-[43] htmltools_0.5.8.1  </code></pre>
+ [1] gtable_0.3.6        xfun_0.51           bslib_0.9.0        
+ [4] processx_3.8.6      lattice_0.22-6      callr_3.7.6        
+ [7] tzdb_0.4.0          vctrs_0.6.5         tools_4.4.1        
+[10] ps_1.9.0            generics_0.1.3      parallel_4.4.1     
+[13] tibble_3.2.1        pkgconfig_2.0.3     lifecycle_1.0.4    
+[16] compiler_4.4.1      farver_2.1.2        stringr_1.5.1      
+[19] git2r_0.35.0        textshaping_1.0.0   statmod_1.5.0      
+[22] munsell_0.5.1       getPass_0.2-4       httpuv_1.6.15      
+[25] htmltools_0.5.8.1   sass_0.4.9          yaml_2.3.10        
+[28] later_1.4.1         pillar_1.10.1       crayon_1.5.3       
+[31] jquerylib_0.1.4     whisker_0.4.1       cachem_1.1.0       
+[34] tidyselect_1.2.1    locfit_1.5-9.12     digest_0.6.37      
+[37] stringi_1.8.4       dplyr_1.1.4         splines_4.4.1      
+[40] rprojroot_2.0.4     fastmap_1.2.0       grid_4.4.1         
+[43] colorspace_2.1-1    cli_3.6.4           magrittr_2.0.3     
+[46] readr_2.1.5         withr_3.0.2         scales_1.3.0       
+[49] promises_1.3.2      bit64_4.6.0-1       rmarkdown_2.29     
+[52] httr_1.4.7          bit_4.6.0           ragg_1.3.3         
+[55] hms_1.1.3           evaluate_1.0.3      knitr_1.49         
+[58] gridGraphics_0.5-1  rlang_1.1.5         Rcpp_1.0.14        
+[61] glue_1.8.0          BiocManager_1.30.25 renv_1.1.2         
+[64] rstudioapi_0.17.1   vroom_1.6.5         jsonlite_1.9.1     
+[67] R6_2.6.1            systemfonts_1.2.1   fs_1.6.5           </code></pre>
 </div>
 </div>
 </div>
