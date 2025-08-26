@@ -7,7 +7,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-Our case study is based on the paired-end Illumina short read RNA-seq experiment from the steady-state adult mouse mammary gland ([GSE227750](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227750)).
+Our case study is based on the paired-end Illumina short read RNA-seq experiment from the steady-state adult mouse mammary gland ([GSE227748](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227748)).
 
 All the RNA-seq experiments were quantified with [Salmon](https://salmon.readthedocs.io/) version v1.10.2 with default options using the decoy-aware transcriptome index generated from the mouse Gencode annotation version M35 and the mm39 build of the mouse genome. To generate coverage plots, we have aligned RNA-seq experiments to the *GRCm39* reference genome with [Subread](https://subread.sourceforge.net/) version v.2.0.6.
 

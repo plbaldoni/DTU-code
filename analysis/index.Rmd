@@ -8,22 +8,24 @@ editor_options:
   chunk_output_type: console
 ---
 
-This website hosts code for the DTU paper, which presents optimized differential transcript usage (DTU) pipelines using the latest versions of the R/Bioconductor packages [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) and [limma](https://bioconductor.org/packages/release/bioc/html/limma.html). 
+This website hosts code for the paper presenting optimized differential transcript usage (DTU) pipelines using the the R/Bioconductor packages [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) and [limma](https://bioconductor.org/packages/release/bioc/html/limma.html). 
 
-The presented pipeline builds upon the latest developments of `edgeR` and `limma` with a unified interface via the `diffSplice` function. The pipelines make use of [divided counts](https://doi.org/10.1093/nar/gkad1167) to remove RTA-induced dispersion from transcript isoform counts and account for the sparsity in transcript-level counts. The new `diffSplice` pipelines provide greater power, improved efficiency, and improved FDR control compared to existing specialized DTU methods.
+The presented pipeline builds upon the latest developments of `edgeR` and `limma` with a unified interface via the `diffSplice` function. The pipelines make use of [divided counts](https://doi.org/10.1093/nar/gkad1167) to remove the RTA-induced dispersion and account for the sparsity from transcript-level counts. The new `diffSplice` pipelines provide greater power, improved efficiency, and improved FDR control compared to existing specialized DTU methods.
 
 ## Simulation study
 
-The pages below present the necessary steps to rerun our simulation study and the code used to generate the figures and tables from the main and supplementary texts of the transcript-level differential expression paper.
+The pages below present the necessary steps to rerun our simulation study and the code used to generate the figures and tables from the main and supplementary texts of the DTU paper.
 
-* [Rerunning the simulation study](simulation-howto.html)
-* [Simulation results from the main article](simulation-paper.html)
-* [Simulation results from the supplement I (strict filtering)](simulation-supp.html)
-* [Simulation results from the supplement II (lenient filtering)](simulation-lenient-supp.html)
+* [Rerunning the simulation studies](simulation-howto.html)
+* [Results from the main paper (Figures 1--4)](main-simulation.html)
+* [Results from the supplement contrasting BCV plots (Supplementary Figure S1)](supp-bcv.html)
+* [Results from the supplement with strict filtering and raw counts (Supplementary Figures S2--S7)](supp-simulation-rawcounts.html)
+* [Results from the supplement with strict filtering and divided counts (Supplementary Figures S8--S14)](supp-simulation-dividedcounts.html)
+* [Results results from the supplement with lenient filtering (Supplementary Tables S1--S2)](supp-simulation-lenient.html)
 
 ## Case study
 
-The pages below present the data pre-processing steps and analysis report of the RNA-seq experiments from the steady-state adult mouse mammary gland (GEO accession [GSE227750](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227750)).
+The pages below present the data pre-processing steps and analysis report of the RNA-seq experiments from the steady-state adult mouse mammary gland (GEO accession [GSE227748](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227748)).
 
 * [Data pre-processing](mouse-howto.html)
-* [Analysis report](mouse.html)
+* [Results from the main paper (Figure 5)](main-casestudy.html)

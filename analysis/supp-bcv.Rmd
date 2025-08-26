@@ -1,0 +1,219 @@
+---
+title: "Simulation Study - Supplementary Results (BCV plots)"
+author: "Pedro L. Baldoni"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+# Introduction
+
+## Setup
+
+```{r supp_intro_setup_options}
+knitr::opts_chunk$set(dev = "png",
+                      dpi = 300,
+                      dev.args = list(type = "cairo-png"),
+                      root.dir = '.',
+                      autodep = TRUE)
+
+options(knitr.kable.NA = "-")
+```
+
+```{r supp_intro_setup_lib,message=FALSE,warning=FALSE}
+library(edgeR)
+library(data.table)
+library(patchwork)
+library(ggplot2)
+```
+
+```{r supp_intro_setup_paths}
+path.misc <- file.path('../misc/supp-bcv.Rmd')
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)
+```
+
+```{r supp_parameters}
+bs <- 8
+```
+
+```{r supp_intro_setup_functions}
+foo.bcv <- function (y,
+                     xlab = "Average log CPM",
+                     ylab = "Biological coefficient of variation",
+                     pch = 16, cex = 0.2,
+                     col.common = "red",
+                     col.trend = "blue",
+                     col.tagwise = "black",
+                     fontsize = 8, ...) {
+  if (!is(y, "DGEList"))
+    stop("y must be a DGEList.")
+  A <- y$AveLogCPM
+  if (is.null(A))
+    A <- aveLogCPM(y$counts, offset = getOffset(y))
+  disp <- getDispersion(y)
+  if (is.null(disp))
+    stop("No dispersions to plot")
+  if (attr(disp, "type") == "common")
+    disp <- rep_len(disp, length(A))
+  par(mar = c(3, 3, 0.5, 0.25),mgp = c(1.25,0.5,0))
+  plot(A, sqrt(disp), xlab = xlab, ylab = ylab, type = "n",
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       cex.main = fontsize/12,
+       ...)
+  labels <- cols <- lty <- pt <- NULL
+  if (!is.null(y$tagwise.dispersion)) {
+    points(A, sqrt(y$tagwise.dispersion), pch = pch, cex = cex,
+           col = col.tagwise)
+    labels <- c(labels, "Tagwise")
+    cols <- c(cols, col.tagwise)
+    lty <- c(lty, -1)
+    pt <- c(pt, pch)
+  }
+  if (!is.null(y$common.dispersion)) {
+    abline(h = sqrt(y$common.dispersion), col = col.common,
+           lwd = 2)
+    labels <- c(labels, "Common")
+    cols <- c(cols, col.common)
+    lty <- c(lty, 1)
+    pt <- c(pt, -1)
+  }
+  if (!is.null(y$trended.dispersion)) {
+    o <- order(A)
+    lines(A[o], sqrt(y$trended.dispersion)[o], col = col.trend,
+          lwd = 2)
+    labels <- c(labels, "Trend")
+    cols <- c(cols, col.trend)
+    lty <- c(lty, 1)
+    pt <- c(pt, -1)
+  }
+  legend("topright", legend = labels, lty = lty, pch = pt,
+         pt.cex = cex, lwd = 2, col = cols,cex = fontsize/12)
+}
+
+plot.voom <- function(fit,fontsize = 8,...){
+  par(mar = c(3, 3, 0.5, 0.25),mgp = c(1.25,0.5,0))
+  plot(x = fit$voom.xy$x,
+       y = fit$voom.xy$y,
+       xlab = fit$voom.xy$xlab,
+       ylab = fit$voom.xy$ylab,
+       pch = fit$voom.xy$pch,
+       cex = fit$voom.xy$cex,
+       cex.lab = fontsize/12,
+       cex.axis = fontsize/12,
+       cex.main = fontsize/12,...)
+  lines(fit$voom.line,col="red",lty=1)
+}
+```
+
+## Data loading
+
+```{r}
+cs.5 <- catchSalmon(list.dirs('../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/5libsPerGroup/simulation-1/quant-salmon',recursive = FALSE))
+cs.3 <- catchSalmon(list.dirs('../output/simulation-no-trend/data/mm39/readlen-100/fc2/paired-end/unbalanced/3libsPerGroup/simulation-1/quant-salmon',recursive = FALSE))
+cs.real <- catchSalmon(list.dirs('../output/mouse/salmon',recursive = FALSE)[1:6])
+```
+
+```{r parameters}
+min.count <- 10
+min.total.count <- 15
+span = 0.40
+```
+
+# BCV plots
+
+```{r sim_n10}
+dge.3 <- DGEList(counts = cs.3$counts/cs.3$annotation$Overdispersion,group = gl(2,3),genes = cs.3$annotation)
+rownames(dge.3) <- limma::strsplit2(rownames(dge.3),"\\|")[,1]
+colnames(dge.3) <- basename(colnames(dge.3))
+
+dge.3.raw <- DGEList(counts = cs.3$counts,group = gl(2,3))
+rownames(dge.3.raw) <- limma::strsplit2(rownames(dge.3.raw),"\\|")[,1]
+colnames(dge.3.raw) <- basename(colnames(dge.3.raw))
+
+design.3 <- model.matrix(~0+group,dge.3$samples)
+
+keep.3 <- filterByExpr(dge.3,min.count = min.count, min.total.count = min.total.count)
+dge.3.filtr <- dge.3[keep.3,,keep.lib.sizes = FALSE]
+dge.3.filtr <- normLibSizes(dge.3.filtr)
+dge.3.filtr <- estimateDisp(dge.3.filtr,design = design.3,span = span)
+
+keep.3.raw <- filterByExpr(dge.3.raw,min.count = min.count, min.total.count = min.total.count)
+dge.3.raw.filtr <- dge.3.raw[keep.3.raw,,keep.lib.sizes = FALSE]
+dge.3.raw.filtr <- normLibSizes(dge.3.raw.filtr)
+dge.3.raw.filtr <- estimateDisp(dge.3.raw.filtr,design = design.3,span = span)
+
+bcv.scaled.sim.3 <- wrap_elements(full = ~foo.bcv(dge.3.filtr))
+bcv.raw.sim.3 <- wrap_elements(full = ~foo.bcv(dge.3.raw.filtr))
+```
+
+```{r sim_n5}
+dge.5 <- DGEList(counts = cs.5$counts/cs.5$annotation$Overdispersion,group = gl(2,5),genes = cs.5$annotation)
+rownames(dge.5) <- limma::strsplit2(rownames(dge.5),"\\|")[,1]
+colnames(dge.5) <- basename(colnames(dge.5))
+
+dge.5.raw <- DGEList(counts = cs.5$counts,group = gl(2,5))
+rownames(dge.5.raw) <- limma::strsplit2(rownames(dge.5.raw),"\\|")[,1]
+colnames(dge.5.raw) <- basename(colnames(dge.5.raw))
+
+design.5 <- model.matrix(~0+group,dge.5$samples)
+
+keep.5 <- filterByExpr(dge.5,min.count = min.count, min.total.count = min.total.count)
+dge.5.filtr <- dge.5[keep.5,,keep.lib.sizes = FALSE]
+dge.5.filtr <- normLibSizes(dge.5.filtr)
+dge.5.filtr <- estimateDisp(dge.5.filtr,design = design.5,span = span)
+
+keep.5.raw <- filterByExpr(dge.5.raw,min.count = min.count, min.total.count = min.total.count)
+dge.5.raw.filtr <- dge.5.raw[keep.5.raw,,keep.lib.sizes = FALSE]
+dge.5.raw.filtr <- normLibSizes(dge.5.raw.filtr)
+dge.5.raw.filtr <- estimateDisp(dge.5.raw.filtr,design = design.5,span = span)
+
+bcv.scaled.sim.5 <- wrap_elements(full = ~foo.bcv(dge.5.filtr))
+bcv.raw.sim.5 <- wrap_elements(full = ~foo.bcv(dge.5.raw.filtr))
+```
+
+```{r}
+dge.real <- DGEList(counts = cs.real$counts/cs.real$annotation$Overdispersion,group = gl(2,3),genes = cs.real$annotation)
+rownames(dge.real) <- limma::strsplit2(rownames(dge.real),"\\|")[,1]
+
+design.real <- model.matrix(~0+group,dge.real$samples)
+
+keep.real <- filterByExpr(dge.real,min.count = min.count, min.total.count = min.total.count)
+dge.real.filtr <- dge.real[keep.real,,keep.lib.sizes = FALSE]
+dge.real.filtr <- normLibSizes(dge.real.filtr)
+dge.real.filtr <- estimateDisp(dge.real.filtr,design = design.real,span = span)
+
+dge.real.raw <- DGEList(counts = cs.real$counts,group = gl(2,3))
+keep.real.raw <- filterByExpr(dge.real.raw,min.count = min.count, min.total.count = min.total.count)
+dge.real.raw.filtr <- dge.real.raw[keep.real.raw,,keep.lib.sizes = FALSE]
+dge.real.raw.filtr <- normLibSizes(dge.real.raw.filtr)
+dge.real.raw.filtr <- estimateDisp(dge.real.raw.filtr,design = design.real,span = span)
+
+bcv.scaled.real <- wrap_elements(full = ~foo.bcv(dge.real.filtr,fontsize = bs))
+bcv.raw.real <- wrap_elements(full = ~foo.bcv(dge.real.raw.filtr,fontsize = bs))
+```
+
+```{r,fig.height=9,fig.width=6}
+fig.edgeR <- wrap_plots(A = bcv.raw.real,
+                        B = bcv.scaled.real,
+                        C = bcv.raw.sim.3,
+                        D = bcv.scaled.sim.3,
+                        E = bcv.raw.sim.5,
+                        `F` = bcv.scaled.sim.5,
+                        design = c(area(1,1),area(1,2),
+                                   area(2,1),area(2,2),
+                                   area(3,1),area(3,2))) +
+  plot_annotation(tag_levels = 'a')  &
+  theme(plot.tag = element_text(size = bs))
+
+fig.edgeR
+```
+
+# Output files
+
+```{r supp_output}
+ggsave(plot = fig.edgeR,
+       filename = file.path(path.misc,'SuppFigure-BCVPlots.png'),
+       device = 'png',width = 6,height = 9,units = 'in',dpi = 300)
+```
