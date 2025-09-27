@@ -1,0 +1,321 @@
+---
+title: "Simulation Study - Supplementary Results (BANDITS)"
+author: "Pedro L. Baldoni"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: inline
+---
+
+# Introduction
+
+## Setup
+
+```{r simulation_intro_setup_options}
+knitr::opts_chunk$set(dev = "png",
+                      dpi = 300,
+                      dev.args = list(type = "cairo-png"),
+                      root.dir = '.',
+                      autodep = TRUE)
+
+options(knitr.kable.NA = "-")
+```
+
+```{r simulation_intro_setup_lib,message=FALSE,warning=FALSE}
+library(data.table)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+library(plyr)
+library(kableExtra)
+devtools::load_all('../code/pkg')
+```
+
+```{r simulation_intro_setup_paths}
+path.misc <- file.path('../misc/supp-simulation-bandits.Rmd')
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)
+
+# Gene-level stats
+path.fdr <-
+  list.files('../output/simulation-no-trend-bandits/summary','fdr.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.metrics <-
+  list.files('../output/simulation-no-trend-bandits/summary','metrics.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.metrics.1pct <-
+  list.files('../output/simulation-no-trend-bandits/summary','metrics.gene.1pct.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.quantile <-
+  list.files('../output/simulation-no-trend-bandits/summary','quantile.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.pvalue <-
+  list.files('../output/simulation-no-trend-bandits/summary','pvalue.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.roc <-
+  list.files('../output/simulation-no-trend-bandits/summary','roc.gene.tsv.gz',recursive = TRUE,full.names = TRUE)
+
+# Transcript-level stats
+path.fdr.tx <-
+  list.files('../output/simulation-no-trend-bandits/summary','fdr.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.metrics.tx <-
+  list.files('../output/simulation-no-trend-bandits/summary','metrics.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.metrics.tx.1pct <-
+  list.files('../output/simulation-no-trend-bandits/summary','metrics.transcript.1pct.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.quantile.tx <-
+  list.files('../output/simulation-no-trend-bandits/summary','quantile.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.pvalue.tx <-
+  list.files('../output/simulation-no-trend-bandits/summary','pvalue.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+path.roc.tx <-
+  list.files('../output/simulation-no-trend-bandits/summary','roc.transcript.tsv.gz',recursive = TRUE,full.names = TRUE)
+
+# Time stats
+path.time <-
+  list.files('../output/simulation-no-trend-bandits/summary','^time.tsv.gz',recursive = TRUE,full.names = TRUE)
+```
+
+```{r simulation_parameters}
+bs <- 8
+cnames <- c('Genome','Length','FC','Reads','Scenario','LibsPerGroup','Quantifier','Method','Feature')
+```
+
+## Data loading
+
+```{r simulation_intro_data_targets_paired}
+relabel <- function(x,feature = NULL){
+  y <- copy(x)
+  if(!is.null(feature)) y$Feature <- feature
+  y$LibsPerGroup %<>% factor(levels = paste0(c(3, 5, 10), 'libsPerGroup'),labels = paste0(c(3,5,10),' samples per group')) %<>% droplevels()
+  y$Length %<>% factor(levels = paste0('readlen-', seq(50, 150, 25)),labels = paste0(seq(50, 150, 25), 'bp')) %<>% droplevels()
+  y$Scenario %<>% factor(levels = c('balanced','unbalanced'),labels = c('Equal library sizes','Unequal library sizes'))
+  if (!is.null(x$Sample)) {
+    browser()
+    y$Sample %<>% factor(levels = c(paste0("groupA_rep",1:10,"_R1"),paste0("groupB_rep",1:10,"_R1")),labels = c(paste0("A",1:10),paste0("B",1:10))) %<>% droplevels()
+  }
+  return(y)
+}
+
+# Loading datasets
+dt.fdr <- do.call(rbind,lapply(path.fdr,fread)) %>% relabel(feature = 'Gene')
+dt.metrics <- do.call(rbind,lapply(path.metrics,fread)) %>% relabel(feature = 'Gene')
+dt.metrics.1pct <- do.call(rbind,lapply(path.metrics.1pct,fread)) %>% relabel(feature = 'Gene')
+dt.quantile <- do.call(rbind,lapply(path.quantile,fread)) %>% relabel(feature = 'Gene')
+dt.pvalue <- do.call(rbind,lapply(path.pvalue,fread)) %>% relabel(feature = 'Gene')
+dt.roc <- do.call(rbind,lapply(path.roc,fread)) %>% relabel(feature = 'Gene')
+
+dt.fdr.tx <- do.call(rbind,lapply(path.fdr.tx,fread)) %>% relabel(feature = 'Transcript')
+dt.metrics.tx <- do.call(rbind,lapply(path.metrics.tx,fread)) %>% relabel(feature = 'Transcript')
+dt.metrics.tx.1pct <- do.call(rbind,lapply(path.metrics.tx.1pct,fread)) %>% relabel(feature = 'Transcript')
+dt.quantile.tx <- do.call(rbind,lapply(path.quantile.tx,fread)) %>% relabel(feature = 'Transcript')
+dt.pvalue.tx <- do.call(rbind,lapply(path.pvalue.tx,fread)) %>% relabel(feature = 'Transcript')
+dt.roc.tx <- do.call(rbind,lapply(path.roc.tx,fread)) %>% relabel(feature = 'Transcript')
+
+dt.time <- do.call(rbind,lapply(path.time,fread)) %>% relabel()
+```
+
+```{r simulation_methods}
+meth <- c('BANDITS-raw')
+meth.lab <- c('BANDITS')
+meth.null <- c("BANDITS-raw")
+```
+
+# P-values
+
+```{r simulation_error,fig.width = 6,fig.height = 4}
+dt.p <- 
+  rbind(dt.pvalue[FC == 'fc1' & Method %in% meth.null,],
+        dt.pvalue.tx[FC == 'fc1' & Method %in% meth,])
+
+colmeth <- 'brown'
+names(colmeth) <- meth.lab
+colmeth <- colmeth[order(names(colmeth))]
+
+dt.p$Method %<>% mapvalues(from = meth,to = meth.lab)
+dt.p$Method %<>% factor(levels = names(colmeth))
+
+plot.phist <- function(df.line,scenario,library,feature,
+                       base_size = bs,...){
+  tb.bar <- df.line[Scenario == scenario & LibsPerGroup == library & Feature == feature,]
+  
+  plot <- ggplot(data = tb.bar,aes(x = PValue,y = Density.Avg)) +
+    geom_col(col = 'black',fill = 'grey',linewidth = 0) +
+    geom_hline(yintercept = 1,col = 'red',linetype = 'dashed') +
+    theme_bw(base_size = base_size,base_family = 'sans') +
+    scale_x_discrete(breaks = c("(0.00-0.05]","(0.50-0.55]","(0.95-1.00]"),
+                     labels = c(0.00,0.50,1.00)) +
+    scale_y_continuous(...) +
+    labs(x = 'P-values',y = 'Density') +
+    theme(strip.text.x = element_text(colour = 'black',size = base_size),
+          strip.background.x = element_blank(),
+          panel.grid = element_blank(),
+          axis.line = element_line(colour = 'black'),
+          axis.text = element_text(colour = 'black',size = base_size),
+          axis.title = element_text(colour = 'black',size = base_size))
+  return(plot)
+}
+
+fig.phist.3 <- plot.phist(df.line = dt.p,
+                        scenario = 'Unequal library sizes',
+                        library = '3 samples per group',
+                        feature = 'Gene',
+                        limits = c(0,2))
+
+fig.phist.5 <- plot.phist(df.line = dt.p,
+                        scenario = 'Unequal library sizes',
+                        library = '5 samples per group',
+                        feature = 'Gene',
+                        limits = c(0,2))
+
+fig.phist.10 <- plot.phist(df.line = dt.p,
+                        scenario = 'Unequal library sizes',
+                        library = '10 samples per group',
+                        feature = 'Gene',
+                       limits = c(0,2))
+
+fig.tx.phist.3 <- plot.phist(df.line = dt.p,
+                           scenario = 'Unequal library sizes',
+                           library = '3 samples per group',
+                           feature = 'Transcript',
+                           limits = c(0,1.5))
+
+fig.tx.phist.5 <- plot.phist(df.line = dt.p,
+                           scenario = 'Unequal library sizes',
+                           library = '5 samples per group',
+                           feature = 'Transcript',
+                           limits = c(0,1.5))
+
+fig.tx.phist.10 <- plot.phist(df.line = dt.p,
+                           scenario = 'Unequal library sizes',
+                           library = '10 samples per group',
+                           feature = 'Transcript',
+                           limits = c(0,1.5))
+
+fig.phist.panel <- wrap_plots(A = fig.phist.3,
+                              B = fig.phist.5,
+                              C = fig.phist.10,
+                              D = fig.tx.phist.3,
+                              E = fig.tx.phist.5,
+                              `F` = fig.tx.phist.10,
+                              design = c(area(1,1),area(1,2),area(1,3),
+                                         area(2,1),area(2,2),area(2,3))) +
+  plot_annotation(tag_levels = 'a',theme = theme(plot.tag = element_text(size = bs)))
+
+fig.phist.panel
+```
+
+# Power
+
+```{r simulation_power,fig.width = 5,fig.height = 5}
+# 5% FDR
+dt.power <- rbind(dt.metrics[FC == 'fc2' & Method %in% meth,],
+                  dt.metrics.tx[FC == 'fc2' & Method %in% meth,],
+                  fill = TRUE)
+
+dt.power$Method %<>% mapvalues(from = meth,to = meth.lab)
+
+dt.power[, FDR := roundPretty(ifelse((FP+TP) == 0,0,100*FP/(FP+TP)),1)]
+
+x.melt <- melt(dt.power,
+               id.vars = cnames,
+               measure.vars = c('TP','FP'),
+               variable.name = 'Type',
+               value.name = 'Value')
+x.melt$Type <-
+  factor(x.melt$Type,
+         levels = c('FP','TP'),
+         labels = c('False','True'))
+
+# 1% FDR
+dt.power.1pct <- rbind(dt.metrics.1pct[FC == 'fc2' & Method %in% meth,],
+                  dt.metrics.tx.1pct[FC == 'fc2' & Method %in% meth,],
+                  fill = TRUE)
+
+dt.power.1pct$Method %<>% mapvalues(from = meth,to = meth.lab)
+
+dt.power.1pct[, FDR := roundPretty(ifelse((FP+TP) == 0,0,100*FP/(FP+TP)),1)]
+
+x.melt.1pct <- melt(dt.power.1pct,
+               id.vars = cnames,
+               measure.vars = c('TP','FP'),
+               variable.name = 'Type',
+               value.name = 'Value')
+x.melt.1pct$Type <-
+  factor(x.melt.1pct$Type,
+         levels = c('FP','TP'),
+         labels = c('False','True'))
+
+plot.power <- function(df.bar,df.txt,scenario,feature,legend = FALSE, base_size = bs,maxy = 4000,...){
+  tb.bar <- df.bar[Scenario == scenario & Feature == feature,]
+  tb.txt <- df.txt[Scenario == scenario & Feature == feature,][FDR != 'NA',]
+  
+  tb.bar$LibsPerGroup <- factor(tb.bar$LibsPerGroup,levels = c('3 samples per group','5 samples per group','10 samples per group'),labels = c('n = 3','n = 5','n = 10'))
+  tb.txt$LibsPerGroup <- factor(tb.txt$LibsPerGroup,levels = c('3 samples per group','5 samples per group','10 samples per group'),labels = c('n = 3','n = 5','n = 10'))
+  
+  gap <- 0.05*max(dt.power$TP + dt.power$FP)
+  ggplot(tb.bar,aes(x = LibsPerGroup,y = Value,fill = Type)) +
+    geom_col() +
+    geom_text(aes(x = LibsPerGroup,y = (TP + FP) +  gap,label = FDR),
+              vjust = 0,data = tb.txt,size = base_size/.pt,inherit.aes = FALSE) +
+    scale_fill_manual(values = c('salmon','lightblue')) +
+    labs(x = NULL,...) +
+    coord_cartesian(ylim = c(0,maxy)) +
+    theme_bw(base_size = base_size,base_family = 'sans') + 
+    theme(panel.grid = element_blank(),
+          axis.line = element_line(colour = 'black'),
+          axis.text = element_text(colour = 'black',size = base_size),
+          axis.title = element_text(colour = 'black',size = base_size)) +
+    if (legend == TRUE) theme(legend.background = element_rect(fill = alpha('white', 0)),
+                              legend.text = element_text(size = base_size),
+                              legend.position = c(0.85,0.85),
+                              legend.direction = 'vertical',
+                              legend.title = element_blank(),
+                              legend.key.size = unit(0.75,"line")) else theme(legend.position = 'none')
+}
+
+fig.power.5 <- plot.power(df.bar = x.melt,df.txt = dt.power,
+                          scenario = 'Unequal library sizes',
+                          feature = 'Gene',
+                          y = 'Genes with FDR < 0.05')
+
+fig.power.tx.5 <- plot.power(df.bar = x.melt,df.txt = dt.power,
+                             scenario = 'Unequal library sizes',
+                             feature = 'Transcript',
+                             y = 'Transcripts with FDR < 0.05',maxy = 9000)
+
+fig.power.1 <- plot.power(df.bar = x.melt.1pct,df.txt = dt.power.1pct,
+                          scenario = 'Unequal library sizes',
+                          feature = 'Gene',
+                          y = 'Genes with FDR < 0.01')
+
+fig.power.tx.1 <- plot.power(df.bar = x.melt.1pct,df.txt = dt.power.1pct,
+                             scenario = 'Unequal library sizes',
+                             feature = 'Transcript',
+                             y = 'Transcripts with FDR < 0.01',maxy = 9000)
+
+
+fig.power <- wrap_plots(A = fig.power.1,
+                        B = fig.power.5,
+                        C = fig.power.tx.1,
+                        D = fig.power.tx.5,
+                      design = c(area(1,1),area(1,2),
+                                 area(2,1),area(2,2))) +
+  plot_annotation(tag_levels = 'a',theme = theme(plot.tag = element_text(size = bs)))
+
+fig.power
+```
+
+
+# Computing time
+
+```{r simulation_time}
+dt.time.plot <- dt.time[FC == 'fc2' & Method %in% meth,]
+
+dt.time.plot$Method %<>% mapvalues(from = meth,to = meth.lab)
+dt.time.plot$Method %<>% factor(levels = names(colmeth))
+
+dt.time.plot[,c('Method','LibsPerGroup','Time')]
+```
+
+# Output files
+
+```{r simulation_output}
+ggsave(plot = fig.power,filename = file.path(path.misc,'SuppFigure-BANDITS-Power.pdf'),
+       device = 'pdf',width = 5,height = 5,units = 'in')
+
+ggsave(plot = fig.phist.panel,filename = file.path(path.misc,'SuppFigure-BANDITS-Pval.pdf'),
+       device = 'pdf',width = 6,height = 4,units = 'in')
+```

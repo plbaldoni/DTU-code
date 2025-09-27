@@ -21,6 +21,7 @@ The pages below present the necessary steps to rerun our simulation study and th
 * [Results from the supplement contrasting BCV plots (Supplementary Figure S1)](supp-bcv.html)
 * [Results from the supplement with strict filtering and raw counts (Supplementary Figures S2--S7)](supp-simulation-rawcounts.html)
 * [Results from the supplement with strict filtering and divided counts (Supplementary Figures S8--S14)](supp-simulation-dividedcounts.html)
+* [Results from the supplement for BANDITS (Supplementary Figures S15--S16)](supp-simulation-bandits.html)
 * [Results results from the supplement with lenient filtering (Supplementary Tables S1--S2)](supp-simulation-lenient.html)
 
 ## Case study
