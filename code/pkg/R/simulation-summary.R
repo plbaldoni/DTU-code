@@ -6,7 +6,17 @@ colramp <- function(n,x){
 }
 
 #' @importFrom RColorBrewer brewer.pal
-methodsNames <- function(){
+methodsNames <- function(bandits.only = FALSE){
+  
+  if (isTRUE(bandits.only)) {
+    method <- 'bandits-raw'
+    labels <- 'BANDITS-raw'
+    color <- "#A52A2A"
+    
+    names(method) <- names(color) <- labels
+    return(list(labels = labels,method = method,color = color))
+  }
+  
   method <- c('edger.v3-scaled-simes',
               'edger.v3-raw-ftest',
               'edger.v3-raw-simes',
@@ -88,9 +98,9 @@ loadRDS <- function(name,type,path){
 }
 
 #' @importFrom data.table data.table fread
-loadResults <- function(path,genome,len,fc,read,scenario,libs.per.group,simulation,quantifier){
+loadResults <- function(path,genome,len,fc,read,scenario,libs.per.group,simulation,quantifier,bandits.only){
   
-  meth <- methodsNames()
+  meth <- methodsNames(bandits.only)
   path.time <- file.path(path,'time.tsv')
   path.method <- file.path(path,paste0(meth$method,'.rds'))
   names(path.method) <- meth$labels
@@ -186,13 +196,13 @@ loadMetadata <- function(path,genome,len,fc,read,scenario,libs.per.group,simulat
   return(out)
 }
 
-aggregateScenario <- function(path,genome,len,fc,read,scenario,libs.per.group,quantifier,nsim,dtu.type){
+aggregateScenario <- function(path,genome,len,fc,read,scenario,libs.per.group,quantifier,nsim,dtu.type,bandits.only){
   
   subpath <- paste0('simulation-',seq_len(nsim))
   
   ls.results <- lapply(seq_len(nsim),function(x){
     res.path <- file.path(path,subpath[x],paste0('dtu-',quantifier))
-    loadResults(res.path,genome,len,fc,read,scenario,libs.per.group,x,quantifier)
+    loadResults(res.path,genome,len,fc,read,scenario,libs.per.group,x,quantifier,bandits.only)
   })
   
   ls.metadata <- lapply(seq_len(nsim),function(x){
@@ -529,9 +539,9 @@ computeTranscriptFDRCurve <- function(x,simulation,fdr,seq.n){
 #' @importFrom ggplot2 ggplot geom_line theme_bw scale_color_manual element_rect
 #' @importFrom ggplot2 scale_x_continuous theme element_blank labs aes alpha geom_point
 #' @importFrom ggplot2 scale_y_continuous geom_abline facet_grid vars unit coord_cartesian
-plotFDRCurve <- function(x,max.n,base_size = 8,xlab = 'Genes chosen'){
+plotFDRCurve <- function(x,max.n,base_size = 8,xlab = 'Genes chosen',bandits.only = FALSE){
   
-  meth <- methodsNames()
+  meth <- methodsNames(bandits.only)
   
   plot <- ggplot(x,aes(x = N,y = FDR,color = Method,group = Method)) +
     facet_grid(rows = vars(LibsPerGroup),scales = 'free_y') +
@@ -555,9 +565,9 @@ plotFDRCurve <- function(x,max.n,base_size = 8,xlab = 'Genes chosen'){
 }
 
 #' @importFrom ggplot2 geom_vline scale_shape_manual
-plotROCCurve <- function(x,seq.fdr,base_size = 8,max.x = 0.35){
+plotROCCurve <- function(x,seq.fdr,base_size = 8,max.x = 0.35,bandits.only = FALSE){
   seq.fdr <- seq.fdr/100
-  meth <- methodsNames()
+  meth <- methodsNames(bandits.only)
   
   shape <- 21:25
   names(shape) <- as.character(seq.fdr)
@@ -797,8 +807,8 @@ summarizeQQ <- function(x,byvar,step = 0.001){
   return(table)
 }
 
-plotQQPlot <- function(x,base_size = 8){
-  meth <- methodsNames()
+plotQQPlot <- function(x,base_size = 8,bandits.only = FALSE){
+  meth <- methodsNames(bandits.only)
   
   plot <- ggplot(x,
                  aes(x = Q.Theory.Midpoint,y = Q.Sample.Avg,color = Method,group = Method)) +
@@ -874,11 +884,12 @@ tabulateMetrics <- function(x,cap,
                             color = TRUE,
                             font_size = NULL,
                             color.fdr = 0.05,
-                            format = 'latex',...){
+                            format = 'latex',
+                            bandits.only = FALSE,...){
   
   dt <- copy(x)
   
-  methods <- methodsNames()$labels
+  methods <- methodsNames(bandits.only)$labels
   
   dt$Length %<>% factor(levels = paste0(seq.len,'bp'))
   dt$LibsPerGroup %<>% mapvalues(from = paste0("#Lib/Group = ",lib.group),to = lib.group)
@@ -977,14 +988,16 @@ summarizeROCCurve <- function(x,byvar){
 
 #' @importFrom data.table fwrite
 summarizeQuantification <- function(path,dest,genome,fc,read,len,
-                                    scenario,libs.per.group,quantifier,
-                                    nsim = 20, fdr = 0.05, seq.n.gene = seq(100,3000,100),
+                                    scenario,libs.per.group,quantifier,bandits.only,
+                                    fdr = 0.05, seq.n.gene = seq(100,3000,100),
                                     seq.n.transcript = seq(100,4500,100),seq.fdr = c(1,5,10,15,20),
                                     alpha = 0.05,dtu.type = 'complete'){
   
+  nsim <- ifelse(bandits.only,5,20)
+  
   byvar <- c('Genome','Length','FC','Reads','Scenario','LibsPerGroup','Quantifier','Method','Simulation')
   
-  res <- aggregateScenario(path = path, genome = genome, len = len, fc = fc , read = read, scenario = scenario, libs.per.group = libs.per.group, quantifier = quantifier, nsim = nsim,dtu.type = dtu.type)
+  res <- aggregateScenario(path = path, genome = genome, len = len, fc = fc , read = read, scenario = scenario, libs.per.group = libs.per.group, quantifier = quantifier, nsim = nsim,dtu.type = dtu.type,bandits.only = bandits.only)
 
   table.gene.metrics <- res$results.gene[,computeGeneMetrics(c(.BY,.SD),simulation = res$simulation.gene,fdr = fdr,alpha = alpha),by = byvar]
   table.transcript.metrics <- res$results.transcript[,computeTranscriptMetrics(c(.BY,.SD),simulation.transcript = res$simulation.transcript,simulation.gene = res$simulation.gene,fdr = fdr,alpha = alpha,gene.transcript = res$gene.transcript),by = byvar]
@@ -1029,7 +1042,7 @@ summarizeQuantification <- function(path,dest,genome,fc,read,len,
   return(invisible())
 }
 
-summarizeScenario <- function(x,table,path,dest){
+summarizeScenario <- function(x,table,path,dest,bandits.only){
   dt <- as.character(table[x,])
   names(dt) <- colnames(table)
   table.names = c('fdr','metrics','time','quantile','pvalue','overdispersion') # Need to update this with the actual output table names
@@ -1049,7 +1062,8 @@ summarizeScenario <- function(x,table,path,dest){
                             dest = file.path(out.path,'dtu-salmon'),
                             genome = dt['genome'],fc = dt['fc'],read = dt['read'],
                             scenario = dt['scenario'],
-                            libs.per.group = dt['libs.per.group'],len = dt['len'])
+                            libs.per.group = dt['libs.per.group'],len = dt['len'],
+                            bandits.only = bandits.only)
   }
 }
 
@@ -1060,7 +1074,8 @@ summarizeSimulation <- function(path,
                                 fc = c(1,2),
                                 read = c('single-end','paired-end'),
                                 scenario = c('balanced','unbalanced'),
-                                libs.per.group = c(3,5,10), ...){
+                                libs.per.group = c(3,5,10),
+                                bandits.only = FALSE, ...){
   
   path <- normalizePath(path)
   dir.create(dest,showWarnings = FALSE,recursive = TRUE)
@@ -1074,7 +1089,7 @@ summarizeSimulation <- function(path,
                              'libs.per.group' = paste0(libs.per.group,'libsPerGroup'),
                              stringsAsFactors = FALSE)
   
-  bplapply(seq_len(nrow(dt.scenario)),summarizeScenario,table = dt.scenario,dest = dest,path = path,...)
+  bplapply(seq_len(nrow(dt.scenario)),summarizeScenario,table = dt.scenario,dest = dest,path = path,bandits.only = bandits.only,...)
   
   return(invisible())
 }

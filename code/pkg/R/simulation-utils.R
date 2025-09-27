@@ -3,7 +3,8 @@
 getCounts <- function(targets,
                       tx.gene,
                       quantifier = c('salmon','kallisto'),
-                      count.type = c('raw','scaled','scaledTPM','dtuScaledTPM')){
+                      count.type = c('raw','scaled','scaledTPM','dtuScaledTPM'),
+                      simplify.names = TRUE){
 
   if (!quantifier %in% c('salmon', 'kallisto')) {
     stop('quantifier must be either salmon or kallisto')
@@ -23,7 +24,9 @@ getCounts <- function(targets,
     TranscriptID <- anno[,1]
     cts$annotation$TranscriptID <- TranscriptID
     cts$annotation$GeneID <- tx.gene$GeneID[match(TranscriptID,tx.gene$TranscriptID)]
-    rownames(cts$counts) <- rownames(cts$annotation) <- TranscriptID
+    if(isTRUE(simplify.names)){
+      rownames(cts$counts) <- rownames(cts$annotation) <- TranscriptID
+    }
     if (count.type == 'scaled'){
       cts <- DGEList(counts = cts$counts/cts$annotation$Overdispersion,
                      samples = targets,
@@ -306,94 +309,153 @@ runDEXSeq <- function(targets,quantifier,count.type,tx.gene,lenient){
   return(list('transcript' = out.transcript,'gene' = out.gene))
 }
 
-callMethods <- function(targets,quantifier,tx.gene,lenient){
+#' @importFrom BANDITS filter_transcripts create_data test_DTU prior_precision
+runBANDITS <- function(targets,quantifier,count.type,tx.gene,lenient,workers){
+  se <- getCounts(targets,tx.gene,quantifier,count.type,simplify.names = FALSE)
+
+  if (count.type %in% c('raw', 'scaled')) {
+    cts <- se$counts
+    anno <- se$genes
+  }
+
+  tx2gene <- cbind(anno$GeneID,rownames(cts))
+
+  eff_len <- anno$Length
+  names(eff_len) <- rownames(anno)
+
+  keep <- filter_transcripts(gene_to_transcript = tx2gene,transcript_counts = cts)
+
+  ecc <- list.files(targets$path,'eq_classes.txt',recursive = TRUE,full.names = TRUE)
+
+  input_data = create_data(salmon_or_kallisto = quantifier,
+                           gene_to_transcript = tx2gene,
+                           salmon_path_to_eq_classes = ecc,
+                           eff_len = eff_len,
+                           n_cores = workers,
+                           transcripts_to_keep = keep)
+
+  precision = prior_precision(gene_to_transcript = tx2gene,
+                              transcript_counts = cts,
+                              n_cores = workers,
+                              transcripts_to_keep = keep)
+
+  results = test_DTU(BANDITS_data = input_data,
+                     precision = precision$prior,
+                     samples_design = targets[,c('sample_id','group')],
+                     group_col_name = "group",
+                     n_cores = workers,
+                     gene_to_transcript = tx2gene)
+
+  out.gene <- results@Gene_results
+  out.gene <- out.gene[,c('Gene_id','p.values','adj.p.values')]
+  colnames(out.gene) <- c("GeneID","PValue","FDR")
+
+  out.transcript <- results@Transcript_results
+  out.transcript <- out.transcript[,c('Gene_id','Transcript_id','p.values','adj.p.values')]
+  colnames(out.transcript) <- c("GeneID","TranscriptID","PValue","FDR")
+  out.transcript$TranscriptID <- strsplit2(out.transcript$TranscriptID,"\\|")[,1]
+
+  return(list('transcript' = out.transcript,'gene' = out.gene))
+}
+
+
+callMethods <- function(targets,quantifier,tx.gene,lenient,run.bandits.only,workers){
 
   res <- list()
   time <- list()
 
-  # edgeR-v4-diffSpliceDGE methods
+  # If running only BANDITS
+  if(isTRUE(run.bandits.only)){
 
-  time[['edger.v3-scaled-simes']] <-
-    system.time({res[['edger.v3-scaled-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = TRUE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    time[['bandits-raw']] <-
+      system.time({res[['bandits-raw']] <- runBANDITS(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient,workers = workers)})
 
-  time[['edger.v3-raw-simes']] <-
-    system.time({res[['edger.v3-raw-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = TRUE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+  } else{
 
-  time[['edger.v3-scaled-ftest']] <-
-    system.time({res[['edger.v3-scaled-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = FALSE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    # edgeR-v4-diffSpliceDGE methods
 
-  time[['edger.v3-raw-ftest']] <-
-    system.time({res[['edger.v3-raw-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = FALSE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['edger.v3-scaled-simes']] <-
+      system.time({res[['edger.v3-scaled-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = TRUE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  # edgeR-v4-diffSpliceDGE methods
+    time[['edger.v3-raw-simes']] <-
+      system.time({res[['edger.v3-raw-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = TRUE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['edger.v4-scaled-simes']] <-
-    system.time({res[['edger.v4-scaled-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = TRUE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    time[['edger.v3-scaled-ftest']] <-
+      system.time({res[['edger.v3-scaled-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = FALSE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['edger.v4-raw-simes']] <-
-    system.time({res[['edger.v4-raw-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = TRUE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['edger.v3-raw-ftest']] <-
+      system.time({res[['edger.v3-raw-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = TRUE,simes = FALSE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['edger.v4-scaled-ftest']] <-
-    system.time({res[['edger.v4-scaled-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = FALSE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    # edgeR-v4-diffSpliceDGE methods
 
-  time[['edger.v4-raw-ftest']] <-
-    system.time({res[['edger.v4-raw-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = FALSE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['edger.v4-scaled-simes']] <-
+      system.time({res[['edger.v4-scaled-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = TRUE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  # limma-diffSplice methods
+    time[['edger.v4-raw-simes']] <-
+      system.time({res[['edger.v4-raw-simes']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = TRUE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['limma-scaled-simes']] <-
-    system.time({res[['limma-scaled-simes']] <- runLimma(targets = targets, quantifier = quantifier,simes = TRUE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    time[['edger.v4-scaled-ftest']] <-
+      system.time({res[['edger.v4-scaled-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = FALSE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['limma-raw-simes']] <-
-    system.time({res[['limma-raw-simes']] <- runLimma(targets = targets, quantifier = quantifier,simes = TRUE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['edger.v4-raw-ftest']] <-
+      system.time({res[['edger.v4-raw-ftest']] <- runEdgeR(targets = targets, quantifier = quantifier,legacy = FALSE,simes = FALSE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['limma-scaled-ftest']] <-
-    system.time({res[['limma-scaled-ftest']] <- runLimma(targets = targets, quantifier = quantifier,simes = FALSE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    # limma-diffSplice methods
 
-  time[['limma-raw-ftest']] <-
-    system.time({res[['limma-raw-ftest']] <- runLimma(targets = targets, quantifier = quantifier,simes = FALSE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['limma-scaled-simes']] <-
+      system.time({res[['limma-scaled-simes']] <- runLimma(targets = targets, quantifier = quantifier,simes = TRUE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  # DRIMSeq methods
+    time[['limma-raw-simes']] <-
+      system.time({res[['limma-raw-simes']] <- runLimma(targets = targets, quantifier = quantifier,simes = TRUE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['drimseq-raw']] <-
-    system.time({res[['drimseq-raw']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['limma-scaled-ftest']] <-
+      system.time({res[['limma-scaled-ftest']] <- runLimma(targets = targets, quantifier = quantifier,simes = FALSE,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['drimseq-scaled']] <-
-    system.time({res[['drimseq-scaled']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    time[['limma-raw-ftest']] <-
+      system.time({res[['limma-raw-ftest']] <- runLimma(targets = targets, quantifier = quantifier,simes = FALSE,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['drimseq-scaledTPM']] <-
-    system.time({res[['drimseq-scaledTPM']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
+    # DRIMSeq methods
 
-  time[['drimseq-dtuScaledTPM']] <-
-    system.time({res[['drimseq-dtuScaledTPM']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'dtuScaledTPM', tx.gene = tx.gene,lenient = lenient)})
+    time[['drimseq-raw']] <-
+      system.time({res[['drimseq-raw']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  # satuRn methods
+    time[['drimseq-scaled']] <-
+      system.time({res[['drimseq-scaled']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['saturn-raw']] <-
-    system.time({res[['saturn-raw']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['drimseq-scaledTPM']] <-
+      system.time({res[['drimseq-scaledTPM']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['saturn-scaled']] <-
-    system.time({res[['saturn-scaled']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    time[['drimseq-dtuScaledTPM']] <-
+      system.time({res[['drimseq-dtuScaledTPM']] <- runDRIMSeq(targets = targets, quantifier = quantifier,count.type = 'dtuScaledTPM', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['saturn-scaledTPM']] <-
-    system.time({res[['saturn-scaledTPM']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
+    # satuRn methods
 
-  time[['saturn-dtuScaledTPM']] <-
-    system.time({res[['saturn-dtuScaledTPM']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'dtuScaledTPM', tx.gene = tx.gene,lenient = lenient)})
+    time[['saturn-raw']] <-
+      system.time({res[['saturn-raw']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
 
-  # DEXSeq methods
+    time[['saturn-scaled']] <-
+      system.time({res[['saturn-scaled']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['dexseq-raw']] <-
-    system.time({res[['dexseq-raw']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+    time[['saturn-scaledTPM']] <-
+      system.time({res[['saturn-scaledTPM']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['dexseq-scaled']] <-
-    system.time({res[['dexseq-scaled']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+    time[['saturn-dtuScaledTPM']] <-
+      system.time({res[['saturn-dtuScaledTPM']] <- runSatuRn(targets = targets, quantifier = quantifier,count.type = 'dtuScaledTPM', tx.gene = tx.gene,lenient = lenient)})
 
-  time[['dexseq-scaledTPM']] <-
-    system.time({res[['dexseq-scaledTPM']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
+    # DEXSeq methods
 
-  time[['dexseq-dtuScaledTPM']] <-
-    system.time({res[['dexseq-dtuScaledTPM']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'dtuScaledTPM', tx.gene = tx.gene,lenient = lenient)})
+    time[['dexseq-raw']] <-
+      system.time({res[['dexseq-raw']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'raw', tx.gene = tx.gene,lenient = lenient)})
+
+    time[['dexseq-scaled']] <-
+      system.time({res[['dexseq-scaled']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'scaled', tx.gene = tx.gene,lenient = lenient)})
+
+    time[['dexseq-scaledTPM']] <-
+      system.time({res[['dexseq-scaledTPM']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'scaledTPM', tx.gene = tx.gene,lenient = lenient)})
+
+    time[['dexseq-dtuScaledTPM']] <-
+      system.time({res[['dexseq-dtuScaledTPM']] <- runDEXSeq(targets = targets, quantifier = quantifier,count.type = 'dtuScaledTPM', tx.gene = tx.gene,lenient = lenient)})
+  }
 
   # Computing time
 
@@ -403,7 +465,7 @@ callMethods <- function(targets,quantifier,tx.gene,lenient){
   return(list('res' = res, 'time' = time))
 }
 
-runMethods <- function(meta.path,quant.path,dest,quantifier,lenient){
+runMethods <- function(meta.path,quant.path,dest,quantifier,lenient,run.bandits.only,workers){
 
   # Getting tx2gene info
   meta.path <- normalizePath(meta.path)
@@ -430,7 +492,7 @@ runMethods <- function(meta.path,quant.path,dest,quantifier,lenient){
   targets$sample_id <- targets$sample
   targets$condition <- as.numeric(targets$group)
 
-  out <- callMethods(targets,quantifier,tx.gene,lenient)
+  out <- callMethods(targets,quantifier,tx.gene,lenient,run.bandits.only,workers)
 
   for (meth.name in names(out$res)) {
     saveRDS(object = out$res[[meth.name]],

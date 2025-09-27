@@ -327,7 +327,8 @@ simulateExperiment <- function(dest,
                                group.disp = TRUE,
                                df.bcv = 40,
                                bcv.true = 0.2,
-                               lenient = FALSE){
+                               lenient = FALSE,
+                               run.bandits.only = FALSE){
 
   # Setting up parallel computing
   if(is.null(seed)){
@@ -364,7 +365,7 @@ simulateExperiment <- function(dest,
                 run.salmon = run.salmon, run.kallisto = run.kallisto)
 
   # Running methods
-  runDTUMethods(dest = file.path(dest),run.salmon = run.salmon, run.kallisto = run.kallisto,run.dtu = run.dtu,lenient = lenient)
+  runDTUMethods(dest = file.path(dest),run.salmon = run.salmon, run.kallisto = run.kallisto,run.dtu = run.dtu,lenient = lenient,run.bandits.only = run.bandits.only,workers = workers)
 
   # Organizing FASTQ files
   path.fastq <- read.delim(path.targets,header = TRUE)
@@ -377,12 +378,12 @@ simulateExperiment <- function(dest,
   }
 }
 
-runDTUMethods <- function(dest,run.salmon,run.kallisto,run.dtu,lenient){
+runDTUMethods <- function(dest,run.salmon,run.kallisto,run.dtu,lenient,run.bandits.only,workers){
   if (run.dtu) {
     if (run.salmon) {
       message('Running DTU methods with Salmon quantification...')
       dir.create(file.path(dest,'dtu-salmon'),recursive = TRUE,showWarnings = FALSE)
-      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-salmon'),dest = file.path(dest,'dtu-salmon'),quantifier = 'salmon',lenient = lenient)
+      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-salmon'),dest = file.path(dest,'dtu-salmon'),quantifier = 'salmon',lenient = lenient,run.bandits.only = run.bandits.only,workers = workers)
       if (file.exists(file.path(dest, 'dtu-salmon', 'time.tsv'))) {
         message('DTU analysis w/ Salmon completed!')
       } else{
@@ -392,7 +393,7 @@ runDTUMethods <- function(dest,run.salmon,run.kallisto,run.dtu,lenient){
     if (run.kallisto) {
       message('Running DTU methods with kallisto quantification...')
       dir.create(file.path(dest,'dtu-kallisto'),recursive = TRUE,showWarnings = FALSE)
-      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-kallisto'),dest = file.path(dest,'dtu-kallisto'),quantifier = 'kallisto',lenient = lenient)
+      runMethods(meta.path = file.path(dest,'meta'),quant.path = file.path(dest,'quant-kallisto'),dest = file.path(dest,'dtu-kallisto'),quantifier = 'kallisto',lenient = lenient,run.bandits.only = run.bandits.only,workers = workers)
       if (file.exists(file.path(dest, 'dtu-kallisto', 'time.tsv'))) {
         message('DTU analysis w/ kallisto completed!')
       } else{

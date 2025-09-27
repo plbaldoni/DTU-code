@@ -1,34 +1,36 @@
 #' @importFrom wasabi prepare_fish_for_sleuth
 #' @importFrom jsonlite fromJSON
 runSalmon <- function(bin,index,targets,dest,options){
-  
+
   dir.create(dest,showWarnings = FALSE,recursive = TRUE)
   dest <- normalizePath(dest)
-  
+
   paired.end <- ifelse(ncol(targets) == 2,TRUE,FALSE)
-  
+
   for (lib.num in seq_len(nrow(targets))) {
-    
+
     targets.file <- as.character(targets[lib.num,])
     sample.name <- gsub('.fastq.gz','',basename(targets.file[1]))
     dest.sample.name <- file.path(dest,sample.name)
-    
+
     # Check if Salmon needs to be run
-    if (file.exists(file.path(dest.sample.name, 'aux_info/meta_info.json')) &
-        file.exists(file.path(dest.sample.name, 'aux_info/bootstrap/bootstraps.gz'))) {
+    run.salmon <- (file.exists(file.path(dest.sample.name, 'aux_info/meta_info.json')) & file.exists(file.path(dest.sample.name, 'aux_info/bootstrap/bootstraps.gz')))
+    run.salmon.for.bandits <- (file.exists(file.path(dest.sample.name, 'aux_info/meta_info.json')) & file.exists(file.path(dest.sample.name, 'aux_info/eq_classes.txt.gz')))
+
+    if (isTRUE(run.salmon)) {
       js <- fromJSON(file.path(dest.sample.name, 'aux_info/meta_info.json'))
       boot <- gzcon(file(file.path(dest.sample.name, 'aux_info/bootstrap/bootstraps.gz'), open = "rb"))
-      
+
       nboot.tx <- js$num_valid_targets
       nboot.json <- js$num_bootstraps
       nboot.actual <- readBin(boot, what = "double", n = nboot.tx * nboot.json)
       nboot.tx*nboot.json == length(nboot.actual)
-      
+
       run <- nboot.tx*nboot.json != length(nboot.actual)
     } else{
-      run <- TRUE
+      run <- ifelse(run.salmon.for.bandits,FALSE,TRUE)
     }
-    
+
     if (isTRUE(run)) {
       if (isFALSE(paired.end)) {
         cmd.sample <- paste('--fldMean 180 --fldSD 40 -r',targets.file)
@@ -41,7 +43,7 @@ runSalmon <- function(bin,index,targets,dest,options){
                    cmd.sample,
                    '-o',dest.sample.name)
       system2(command = bin,args = cmd)
-      
+
       # Preparing salmon for sleuth
       if (!file.exists(file.path(dest.sample.name, 'abundance.h5'))) {
         prepare_fish_for_sleuth(dest.sample.name)
@@ -52,18 +54,18 @@ runSalmon <- function(bin,index,targets,dest,options){
 
 #' @importFrom rhdf5 h5ls
 runKallisto <- function(bin,index,targets,dest,options){
-  
+
   dir.create(dest,showWarnings = FALSE,recursive = TRUE)
   dest <- normalizePath(dest)
-  
+
   paired.end <- ifelse(ncol(targets) == 2,TRUE,FALSE)
-  
+
   for (lib.num in seq_len(nrow(targets))) {
-    
+
     targets.file <- as.character(targets[lib.num,])
     sample.name <- gsub('.fastq.gz','',basename(targets.file[1]))
     dest.sample.name <- file.path(dest,sample.name)
-    
+
     # It is not possible to know if kallisto has been run to completion without
     # manual inspection of the abundance.h5 file
     if (file.exists(file.path(dest.sample.name, 'run_info.json'))) {
@@ -72,7 +74,7 @@ runKallisto <- function(bin,index,targets,dest,options){
     } else{
       run <- TRUE
     }
-    
+
     if (isTRUE(run)) {
       if (isFALSE(paired.end)) {
         cmd.sample <- paste('-l 180 -s 40 --single',targets.file)
