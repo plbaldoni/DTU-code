@@ -9,9 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
+<meta name="author" content="Pedro L. Baldoni" />
 
 
-<title>Workflowr page from the DTU paper</title>
+<title>Simulation Study - Supplementary Results (BANDITS)</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -29,6 +30,9 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -231,6 +235,69 @@ $(document).ready(function () {
 
 
 
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
 
 </head>
 
@@ -238,6 +305,16 @@ $(document).ready(function () {
 
 
 <div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -278,7 +355,10 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Workflowr page from the DTU paper</h1>
+<h1 class="title toc-ignore">Simulation Study - Supplementary Results
+(BANDITS)</h1>
+<h4 class="author">Pedro L. Baldoni</h4>
+<h4 class="date">28 September, 2025</h4>
 
 </div>
 
@@ -311,7 +391,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 </p>
 <p>
 <strong>Checks:</strong> <span
-class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 2
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
 <span class="glyphicon glyphicon-exclamation-sign text-danger"
 aria-hidden="true"></span> 0
 </p>
@@ -348,6 +428,90 @@ class="panel-collapse collapse">
 <p>Great! Since the R Markdown file has been committed to the Git
 repository, you know the exact version of the code that produced these
 results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20240501code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20240501)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20240501code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20240501)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
 </div>
 </div>
 </div>
@@ -697,10 +861,12 @@ have uncommitted changes.
 <div id="versions" class="tab-pane fade">
 <p>
 These are the previous versions of the repository in which changes were
-made to the R Markdown (<code>analysis/index.Rmd</code>) and HTML
-(<code>docs/index.html</code>) files. If you’ve configured a remote Git
-repository (see <code>?wflow_git_remote</code>), click on the hyperlinks
-in the table below to view the files as they were in that past version.
+made to the R Markdown
+(<code>analysis/supp-simulation-bandits.Rmd</code>) and HTML
+(<code>docs/supp-simulation-bandits.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -729,7 +895,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/bb32db113fbbf132bfa0757758ddac30790c91d6/analysis/index.Rmd" target="_blank">bb32db1</a>
+<a href="https://github.com/plbaldoni/DTU-code/blob/bb32db113fbbf132bfa0757758ddac30790c91d6/analysis/supp-simulation-bandits.Rmd" target="_blank">bb32db1</a>
 </td>
 <td>
 Pedro Baldoni
@@ -741,91 +907,6 @@ Pedro Baldoni
 Adding BANDITS results
 </td>
 </tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/plbaldoni/DTU-code/e7117782d18823b41cd943809c0984bbbae3cfe3/docs/index.html" target="_blank">e711778</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-08-27
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/59512356c3355cef102f7ba02126a94e96824028/analysis/index.Rmd" target="_blank">5951235</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-08-27
-</td>
-<td>
-DTU paper revision
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/plbaldoni/DTU-code/cb83e0524b87b0193973af537a0163a946748ec5/docs/index.html" target="_blank">cb83e05</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-04-08
-</td>
-<td>
-Build site.
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/9bbfdcadf09f83f41ade8263b549a757bdcb8d84/analysis/index.Rmd" target="_blank">9bbfdca</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2025-04-08
-</td>
-<td>
-Update landing page
-</td>
-</tr>
-<tr>
-<td>
-Rmd
-</td>
-<td>
-<a href="https://github.com/plbaldoni/DTU-code/blob/cd0ad9dfce878bba862735a69a4419ba32f0fd44/analysis/index.Rmd" target="_blank">cd0ad9d</a>
-</td>
-<td>
-Pedro Baldoni
-</td>
-<td>
-2024-05-01
-</td>
-<td>
-Start workflowr project.
-</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -833,55 +914,428 @@ Start workflowr project.
 </div>
 </div>
 </div>
-<p>This website hosts code for the paper presenting optimized
-differential transcript usage (DTU) pipelines using the the
-R/Bioconductor packages <a
-href="https://bioconductor.org/packages/release/bioc/html/edgeR.html">edgeR</a>
-and <a
-href="https://bioconductor.org/packages/release/bioc/html/limma.html">limma</a>.</p>
-<p>The presented pipeline builds upon the latest developments of
-<code>edgeR</code> and <code>limma</code> with a unified interface via
-the <code>diffSplice</code> function. The pipelines make use of <a
-href="https://doi.org/10.1093/nar/gkad1167">divided counts</a> to remove
-the RTA-induced dispersion and account for the sparsity from
-transcript-level counts. The new <code>diffSplice</code> pipelines
-provide greater power, improved efficiency, and improved FDR control
-compared to existing specialized DTU methods.</p>
-<div id="simulation-study" class="section level2">
-<h2>Simulation study</h2>
-<p>The pages below present the necessary steps to rerun our simulation
-study and the code used to generate the figures and tables from the main
-and supplementary texts of the DTU paper.</p>
-<ul>
-<li><a href="simulation-howto.html">Rerunning the simulation
-studies</a></li>
-<li><a href="main-simulation.html">Results from the main paper (Figures
-1–4)</a></li>
-<li><a href="supp-bcv.html">Results from the supplement contrasting BCV
-plots (Supplementary Figure S1)</a></li>
-<li><a href="supp-simulation-rawcounts.html">Results from the supplement
-with strict filtering and raw counts (Supplementary Figures
-S2–S7)</a></li>
-<li><a href="supp-simulation-dividedcounts.html">Results from the
-supplement with strict filtering and divided counts (Supplementary
-Figures S8–S14)</a></li>
-<li><a href="supp-simulation-bandits.html">Results from the supplement
-for BANDITS (Supplementary Figures S15–S16)</a></li>
-<li><a href="supp-simulation-lenient.html">Results results from the
-supplement with lenient filtering (Supplementary Tables S1–S2)</a></li>
-</ul>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<div id="setup" class="section level2">
+<h2>Setup</h2>
+<pre class="r"><code>knitr::opts_chunk$set(dev = &quot;png&quot;,
+                      dpi = 300,
+                      dev.args = list(type = &quot;cairo-png&quot;),
+                      root.dir = &#39;.&#39;,
+                      autodep = TRUE)
+
+options(knitr.kable.NA = &quot;-&quot;)</code></pre>
+<pre class="r"><code>library(data.table)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+library(plyr)
+library(kableExtra)
+devtools::load_all(&#39;../code/pkg&#39;)</code></pre>
+<pre class="r"><code>path.misc &lt;- file.path(&#39;../misc/supp-simulation-bandits.Rmd&#39;)
+dir.create(path.misc,recursive = TRUE,showWarnings = FALSE)
+
+# Gene-level stats
+path.fdr &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;fdr.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.metrics &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;metrics.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.metrics.1pct &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;metrics.gene.1pct.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.quantile &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;quantile.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.pvalue &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;pvalue.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.roc &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;roc.gene.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+
+# Transcript-level stats
+path.fdr.tx &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;fdr.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.metrics.tx &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;metrics.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.metrics.tx.1pct &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;metrics.transcript.1pct.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.quantile.tx &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;quantile.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.pvalue.tx &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;pvalue.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+path.roc.tx &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;roc.transcript.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)
+
+# Time stats
+path.time &lt;-
+  list.files(&#39;../output/simulation-no-trend-bandits/summary&#39;,&#39;^time.tsv.gz&#39;,recursive = TRUE,full.names = TRUE)</code></pre>
+<pre class="r"><code>bs &lt;- 8
+cnames &lt;- c(&#39;Genome&#39;,&#39;Length&#39;,&#39;FC&#39;,&#39;Reads&#39;,&#39;Scenario&#39;,&#39;LibsPerGroup&#39;,&#39;Quantifier&#39;,&#39;Method&#39;,&#39;Feature&#39;)</code></pre>
 </div>
-<div id="case-study" class="section level2">
-<h2>Case study</h2>
-<p>The pages below present the data pre-processing steps and analysis
-report of the RNA-seq experiments from the steady-state adult mouse
-mammary gland (GEO accession <a
-href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227748">GSE227748</a>).</p>
-<ul>
-<li><a href="mouse-howto.html">Data pre-processing</a></li>
-<li><a href="main-casestudy.html">Results from the main paper (Figure
-5)</a></li>
-</ul>
+<div id="data-loading" class="section level2">
+<h2>Data loading</h2>
+<pre class="r"><code>relabel &lt;- function(x,feature = NULL){
+  y &lt;- copy(x)
+  if(!is.null(feature)) y$Feature &lt;- feature
+  y$LibsPerGroup %&lt;&gt;% factor(levels = paste0(c(3, 5, 10), &#39;libsPerGroup&#39;),labels = paste0(c(3,5,10),&#39; samples per group&#39;)) %&lt;&gt;% droplevels()
+  y$Length %&lt;&gt;% factor(levels = paste0(&#39;readlen-&#39;, seq(50, 150, 25)),labels = paste0(seq(50, 150, 25), &#39;bp&#39;)) %&lt;&gt;% droplevels()
+  y$Scenario %&lt;&gt;% factor(levels = c(&#39;balanced&#39;,&#39;unbalanced&#39;),labels = c(&#39;Equal library sizes&#39;,&#39;Unequal library sizes&#39;))
+  if (!is.null(x$Sample)) {
+    browser()
+    y$Sample %&lt;&gt;% factor(levels = c(paste0(&quot;groupA_rep&quot;,1:10,&quot;_R1&quot;),paste0(&quot;groupB_rep&quot;,1:10,&quot;_R1&quot;)),labels = c(paste0(&quot;A&quot;,1:10),paste0(&quot;B&quot;,1:10))) %&lt;&gt;% droplevels()
+  }
+  return(y)
+}
+
+# Loading datasets
+dt.fdr &lt;- do.call(rbind,lapply(path.fdr,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+dt.metrics &lt;- do.call(rbind,lapply(path.metrics,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+dt.metrics.1pct &lt;- do.call(rbind,lapply(path.metrics.1pct,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+dt.quantile &lt;- do.call(rbind,lapply(path.quantile,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+dt.pvalue &lt;- do.call(rbind,lapply(path.pvalue,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+dt.roc &lt;- do.call(rbind,lapply(path.roc,fread)) %&gt;% relabel(feature = &#39;Gene&#39;)
+
+dt.fdr.tx &lt;- do.call(rbind,lapply(path.fdr.tx,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+dt.metrics.tx &lt;- do.call(rbind,lapply(path.metrics.tx,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+dt.metrics.tx.1pct &lt;- do.call(rbind,lapply(path.metrics.tx.1pct,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+dt.quantile.tx &lt;- do.call(rbind,lapply(path.quantile.tx,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+dt.pvalue.tx &lt;- do.call(rbind,lapply(path.pvalue.tx,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+dt.roc.tx &lt;- do.call(rbind,lapply(path.roc.tx,fread)) %&gt;% relabel(feature = &#39;Transcript&#39;)
+
+dt.time &lt;- do.call(rbind,lapply(path.time,fread)) %&gt;% relabel()</code></pre>
+<pre class="r"><code>meth &lt;- c(&#39;BANDITS-raw&#39;)
+meth.lab &lt;- c(&#39;BANDITS&#39;)
+meth.null &lt;- c(&quot;BANDITS-raw&quot;)</code></pre>
+</div>
+</div>
+<div id="p-values" class="section level1">
+<h1>P-values</h1>
+<pre class="r"><code>dt.p &lt;- 
+  rbind(dt.pvalue[FC == &#39;fc1&#39; &amp; Method %in% meth.null,],
+        dt.pvalue.tx[FC == &#39;fc1&#39; &amp; Method %in% meth,])
+
+colmeth &lt;- &#39;brown&#39;
+names(colmeth) &lt;- meth.lab
+colmeth &lt;- colmeth[order(names(colmeth))]
+
+dt.p$Method %&lt;&gt;% mapvalues(from = meth,to = meth.lab)
+dt.p$Method %&lt;&gt;% factor(levels = names(colmeth))
+
+plot.phist &lt;- function(df.line,scenario,library,feature,
+                       base_size = bs,...){
+  tb.bar &lt;- df.line[Scenario == scenario &amp; LibsPerGroup == library &amp; Feature == feature,]
+  
+  plot &lt;- ggplot(data = tb.bar,aes(x = PValue,y = Density.Avg)) +
+    geom_col(col = &#39;black&#39;,fill = &#39;grey&#39;,linewidth = 0) +
+    geom_hline(yintercept = 1,col = &#39;red&#39;,linetype = &#39;dashed&#39;) +
+    theme_bw(base_size = base_size,base_family = &#39;sans&#39;) +
+    scale_x_discrete(breaks = c(&quot;(0.00-0.05]&quot;,&quot;(0.50-0.55]&quot;,&quot;(0.95-1.00]&quot;),
+                     labels = c(0.00,0.50,1.00)) +
+    scale_y_continuous(...) +
+    labs(x = &#39;P-values&#39;,y = &#39;Density&#39;) +
+    theme(strip.text.x = element_text(colour = &#39;black&#39;,size = base_size),
+          strip.background.x = element_blank(),
+          panel.grid = element_blank(),
+          axis.line = element_line(colour = &#39;black&#39;),
+          axis.text = element_text(colour = &#39;black&#39;,size = base_size),
+          axis.title = element_text(colour = &#39;black&#39;,size = base_size))
+  return(plot)
+}
+
+fig.phist.3 &lt;- plot.phist(df.line = dt.p,
+                        scenario = &#39;Unequal library sizes&#39;,
+                        library = &#39;3 samples per group&#39;,
+                        feature = &#39;Gene&#39;,
+                        limits = c(0,2))
+
+fig.phist.5 &lt;- plot.phist(df.line = dt.p,
+                        scenario = &#39;Unequal library sizes&#39;,
+                        library = &#39;5 samples per group&#39;,
+                        feature = &#39;Gene&#39;,
+                        limits = c(0,2))
+
+fig.phist.10 &lt;- plot.phist(df.line = dt.p,
+                        scenario = &#39;Unequal library sizes&#39;,
+                        library = &#39;10 samples per group&#39;,
+                        feature = &#39;Gene&#39;,
+                       limits = c(0,2))
+
+fig.tx.phist.3 &lt;- plot.phist(df.line = dt.p,
+                           scenario = &#39;Unequal library sizes&#39;,
+                           library = &#39;3 samples per group&#39;,
+                           feature = &#39;Transcript&#39;,
+                           limits = c(0,1.5))
+
+fig.tx.phist.5 &lt;- plot.phist(df.line = dt.p,
+                           scenario = &#39;Unequal library sizes&#39;,
+                           library = &#39;5 samples per group&#39;,
+                           feature = &#39;Transcript&#39;,
+                           limits = c(0,1.5))
+
+fig.tx.phist.10 &lt;- plot.phist(df.line = dt.p,
+                           scenario = &#39;Unequal library sizes&#39;,
+                           library = &#39;10 samples per group&#39;,
+                           feature = &#39;Transcript&#39;,
+                           limits = c(0,1.5))
+
+fig.phist.panel &lt;- wrap_plots(A = fig.phist.3,
+                              B = fig.phist.5,
+                              C = fig.phist.10,
+                              D = fig.tx.phist.3,
+                              E = fig.tx.phist.5,
+                              `F` = fig.tx.phist.10,
+                              design = c(area(1,1),area(1,2),area(1,3),
+                                         area(2,1),area(2,2),area(2,3))) +
+  plot_annotation(tag_levels = &#39;a&#39;,theme = theme(plot.tag = element_text(size = bs)))
+
+fig.phist.panel</code></pre>
+<p><img src="figure/supp-simulation-bandits.Rmd/simulation_error-1.png" width="1800" style="display: block; margin: auto;" /></p>
+</div>
+<div id="power" class="section level1">
+<h1>Power</h1>
+<pre class="r"><code># 5% FDR
+dt.power &lt;- rbind(dt.metrics[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                  dt.metrics.tx[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                  fill = TRUE)
+
+dt.power$Method %&lt;&gt;% mapvalues(from = meth,to = meth.lab)
+
+dt.power[, FDR := roundPretty(ifelse((FP+TP) == 0,0,100*FP/(FP+TP)),1)]
+
+x.melt &lt;- melt(dt.power,
+               id.vars = cnames,
+               measure.vars = c(&#39;TP&#39;,&#39;FP&#39;),
+               variable.name = &#39;Type&#39;,
+               value.name = &#39;Value&#39;)
+x.melt$Type &lt;-
+  factor(x.melt$Type,
+         levels = c(&#39;FP&#39;,&#39;TP&#39;),
+         labels = c(&#39;False&#39;,&#39;True&#39;))
+
+# 1% FDR
+dt.power.1pct &lt;- rbind(dt.metrics.1pct[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                  dt.metrics.tx.1pct[FC == &#39;fc2&#39; &amp; Method %in% meth,],
+                  fill = TRUE)
+
+dt.power.1pct$Method %&lt;&gt;% mapvalues(from = meth,to = meth.lab)
+
+dt.power.1pct[, FDR := roundPretty(ifelse((FP+TP) == 0,0,100*FP/(FP+TP)),1)]
+
+x.melt.1pct &lt;- melt(dt.power.1pct,
+               id.vars = cnames,
+               measure.vars = c(&#39;TP&#39;,&#39;FP&#39;),
+               variable.name = &#39;Type&#39;,
+               value.name = &#39;Value&#39;)
+x.melt.1pct$Type &lt;-
+  factor(x.melt.1pct$Type,
+         levels = c(&#39;FP&#39;,&#39;TP&#39;),
+         labels = c(&#39;False&#39;,&#39;True&#39;))
+
+plot.power &lt;- function(df.bar,df.txt,scenario,feature,legend = FALSE, base_size = bs,maxy = 4000,...){
+  tb.bar &lt;- df.bar[Scenario == scenario &amp; Feature == feature,]
+  tb.txt &lt;- df.txt[Scenario == scenario &amp; Feature == feature,][FDR != &#39;NA&#39;,]
+  
+  tb.bar$LibsPerGroup &lt;- factor(tb.bar$LibsPerGroup,levels = c(&#39;3 samples per group&#39;,&#39;5 samples per group&#39;,&#39;10 samples per group&#39;),labels = c(&#39;n = 3&#39;,&#39;n = 5&#39;,&#39;n = 10&#39;))
+  tb.txt$LibsPerGroup &lt;- factor(tb.txt$LibsPerGroup,levels = c(&#39;3 samples per group&#39;,&#39;5 samples per group&#39;,&#39;10 samples per group&#39;),labels = c(&#39;n = 3&#39;,&#39;n = 5&#39;,&#39;n = 10&#39;))
+  
+  gap &lt;- 0.05*max(dt.power$TP + dt.power$FP)
+  ggplot(tb.bar,aes(x = LibsPerGroup,y = Value,fill = Type)) +
+    geom_col() +
+    geom_text(aes(x = LibsPerGroup,y = (TP + FP) +  gap,label = FDR),
+              vjust = 0,data = tb.txt,size = base_size/.pt,inherit.aes = FALSE) +
+    scale_fill_manual(values = c(&#39;salmon&#39;,&#39;lightblue&#39;)) +
+    labs(x = NULL,...) +
+    coord_cartesian(ylim = c(0,maxy)) +
+    theme_bw(base_size = base_size,base_family = &#39;sans&#39;) + 
+    theme(panel.grid = element_blank(),
+          axis.line = element_line(colour = &#39;black&#39;),
+          axis.text = element_text(colour = &#39;black&#39;,size = base_size),
+          axis.title = element_text(colour = &#39;black&#39;,size = base_size)) +
+    if (legend == TRUE) theme(legend.background = element_rect(fill = alpha(&#39;white&#39;, 0)),
+                              legend.text = element_text(size = base_size),
+                              legend.position = c(0.85,0.85),
+                              legend.direction = &#39;vertical&#39;,
+                              legend.title = element_blank(),
+                              legend.key.size = unit(0.75,&quot;line&quot;)) else theme(legend.position = &#39;none&#39;)
+}
+
+fig.power.5 &lt;- plot.power(df.bar = x.melt,df.txt = dt.power,
+                          scenario = &#39;Unequal library sizes&#39;,
+                          feature = &#39;Gene&#39;,
+                          y = &#39;Genes with FDR &lt; 0.05&#39;)
+
+fig.power.tx.5 &lt;- plot.power(df.bar = x.melt,df.txt = dt.power,
+                             scenario = &#39;Unequal library sizes&#39;,
+                             feature = &#39;Transcript&#39;,
+                             y = &#39;Transcripts with FDR &lt; 0.05&#39;,maxy = 9000)
+
+fig.power.1 &lt;- plot.power(df.bar = x.melt.1pct,df.txt = dt.power.1pct,
+                          scenario = &#39;Unequal library sizes&#39;,
+                          feature = &#39;Gene&#39;,
+                          y = &#39;Genes with FDR &lt; 0.01&#39;)
+
+fig.power.tx.1 &lt;- plot.power(df.bar = x.melt.1pct,df.txt = dt.power.1pct,
+                             scenario = &#39;Unequal library sizes&#39;,
+                             feature = &#39;Transcript&#39;,
+                             y = &#39;Transcripts with FDR &lt; 0.01&#39;,maxy = 9000)
+
+
+fig.power &lt;- wrap_plots(A = fig.power.1,
+                        B = fig.power.5,
+                        C = fig.power.tx.1,
+                        D = fig.power.tx.5,
+                      design = c(area(1,1),area(1,2),
+                                 area(2,1),area(2,2))) +
+  plot_annotation(tag_levels = &#39;a&#39;,theme = theme(plot.tag = element_text(size = bs)))
+
+fig.power</code></pre>
+<p><img src="figure/supp-simulation-bandits.Rmd/simulation_power-1.png" width="1500" style="display: block; margin: auto;" /></p>
+</div>
+<div id="computing-time" class="section level1">
+<h1>Computing time</h1>
+<pre class="r"><code>dt.time.plot &lt;- dt.time[FC == &#39;fc2&#39; &amp; Method %in% meth,]
+
+dt.time.plot$Method %&lt;&gt;% mapvalues(from = meth,to = meth.lab)
+dt.time.plot$Method %&lt;&gt;% factor(levels = names(colmeth))
+
+dt.time.plot[,c(&#39;Method&#39;,&#39;LibsPerGroup&#39;,&#39;Time&#39;)]</code></pre>
+<pre><code>    Method         LibsPerGroup     Time
+    &lt;fctr&gt;               &lt;fctr&gt;    &lt;num&gt;
+1: BANDITS 10 samples per group 81.26544
+2: BANDITS  3 samples per group 16.84887
+3: BANDITS  5 samples per group 26.28093</code></pre>
+</div>
+<div id="output-files" class="section level1">
+<h1>Output files</h1>
+<pre class="r"><code>ggsave(plot = fig.power,filename = file.path(path.misc,&#39;SuppFigure-BANDITS-Power.pdf&#39;),
+       device = &#39;pdf&#39;,width = 5,height = 5,units = &#39;in&#39;)
+
+ggsave(plot = fig.phist.panel,filename = file.path(path.misc,&#39;SuppFigure-BANDITS-Pval.pdf&#39;),
+       device = &#39;pdf&#39;,width = 6,height = 4,units = &#39;in&#39;)</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.4.1 (2024-06-14)
+Platform: x86_64-pc-linux-gnu
+Running under: Red Hat Enterprise Linux 9.3 (Plow)
+
+Matrix products: default
+BLAS:   /stornext/System/data/software/rhel/9/base/tools/R/4.4.1/lib64/R/lib/libRblas.so 
+LAPACK: /stornext/System/data/software/rhel/9/base/tools/R/4.4.1/lib64/R/lib/libRlapack.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Australia/Melbourne
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+[1] pkg_1.0           kableExtra_1.4.0  plyr_1.8.9        patchwork_1.3.0  
+[5] ggplot2_3.5.1     magrittr_2.0.3    data.table_1.17.0 workflowr_1.7.1  
+
+loaded via a namespace (and not attached):
+  [1] splines_4.4.1               later_1.4.1                
+  [3] BiocIO_1.14.0               bitops_1.0-9               
+  [5] filelock_1.0.3              R.oo_1.27.0                
+  [7] tibble_3.2.1                XML_3.99-0.18              
+  [9] lifecycle_1.0.4             httr2_1.1.0                
+ [11] doParallel_1.0.17           edgeR_4.5.9                
+ [13] rprojroot_2.0.4             MASS_7.3-60.2              
+ [15] processx_3.8.6              lattice_0.22-6             
+ [17] ensembldb_2.28.1            limma_3.63.9               
+ [19] sass_0.4.9                  rmarkdown_2.29             
+ [21] jquerylib_0.1.4             yaml_2.3.10                
+ [23] remotes_2.5.0               httpuv_1.6.15              
+ [25] doRNG_1.8.6.2               sessioninfo_1.2.3          
+ [27] pkgbuild_1.4.6              pbapply_1.7-2              
+ [29] RColorBrewer_1.1-3          DBI_1.2.3                  
+ [31] abind_1.4-8                 pkgload_1.4.0              
+ [33] zlibbioc_1.50.0             GenomicRanges_1.56.2       
+ [35] R.utils_2.13.0              purrr_1.0.4                
+ [37] AnnotationFilter_1.28.0     BiocGenerics_0.50.0        
+ [39] RCurl_1.98-1.16             rappdirs_0.3.3             
+ [41] git2r_0.35.0                GenomeInfoDbData_1.2.12    
+ [43] DEXSeq_1.50.0               wasabi_1.0.1               
+ [45] IRanges_2.38.1              S4Vectors_0.42.1           
+ [47] genefilter_1.86.0           fishpond_2.10.0            
+ [49] annotate_1.82.0             svglite_2.1.3              
+ [51] codetools_0.2-20            DelayedArray_0.30.1        
+ [53] xml2_1.3.7                  tidyselect_1.2.1           
+ [55] locfdr_1.1-8                UCSC.utils_1.0.0           
+ [57] farver_2.1.2                satuRn_1.12.0              
+ [59] matrixStats_1.5.0           stats4_4.4.1               
+ [61] BiocFileCache_2.12.0        GenomicAlignments_1.40.0   
+ [63] jsonlite_1.9.1              ellipsis_0.3.2             
+ [65] survival_3.6-4              iterators_1.0.14           
+ [67] systemfonts_1.2.1           foreach_1.5.2              
+ [69] tools_4.4.1                 progress_1.2.3             
+ [71] ragg_1.3.3                  Rcpp_1.0.14                
+ [73] glue_1.8.0                  svMisc_1.4.3               
+ [75] SparseArray_1.4.8           DESeq2_1.44.0              
+ [77] xfun_0.51                   MatrixGenerics_1.16.0      
+ [79] usethis_3.1.0               GenomeInfoDb_1.40.1        
+ [81] BANDITS_1.20.0              dplyr_1.1.4                
+ [83] withr_3.0.2                 BiocManager_1.30.25        
+ [85] fastmap_1.2.0               boot_1.3-30                
+ [87] rhdf5filters_1.16.0         callr_3.7.6                
+ [89] digest_0.6.37               R6_2.6.1                   
+ [91] mime_0.12                   textshaping_1.0.0          
+ [93] colorspace_2.1-1            gtools_3.9.5               
+ [95] biomaRt_2.60.1              RSQLite_2.3.9              
+ [97] R.methodsS3_1.8.2           generics_0.1.3             
+ [99] renv_1.1.2                  tximeta_1.22.1             
+[101] rtracklayer_1.64.0          prettyunits_1.2.0          
+[103] httr_1.4.7                  htmlwidgets_1.6.4          
+[105] S4Arrays_1.4.1              whisker_0.4.1              
+[107] pkgconfig_2.0.3             gtable_0.3.6               
+[109] blob_1.2.4                  hwriter_1.3.2.1            
+[111] SingleCellExperiment_1.26.0 XVector_0.44.0             
+[113] htmltools_0.5.8.1           geneplotter_1.82.0         
+[115] profvis_0.4.0               ProtGenerics_1.36.0        
+[117] sleuth_0.30.1               scales_1.3.0               
+[119] Biobase_2.64.0              Rsubread_2.18.0            
+[121] png_0.1-8                   knitr_1.49                 
+[123] rstudioapi_0.17.1           reshape2_1.4.4             
+[125] tzdb_0.4.0                  rjson_0.2.23               
+[127] curl_6.2.1                  cachem_1.1.0               
+[129] rhdf5_2.48.0                stringr_1.5.1              
+[131] BiocVersion_3.19.1          parallel_4.4.1             
+[133] miniUI_0.1.1.1              AnnotationDbi_1.66.0       
+[135] restfulr_0.0.15             desc_1.4.3                 
+[137] pillar_1.10.1               grid_4.4.1                 
+[139] vctrs_0.6.5                 urlchecker_1.0.1           
+[141] promises_1.3.2              dbplyr_2.5.0               
+[143] xtable_1.8-4                tximport_1.32.0            
+[145] evaluate_1.0.3              readr_2.1.5                
+[147] GenomicFeatures_1.56.0      locfit_1.5-9.12            
+[149] cli_3.6.4                   compiler_4.4.1             
+[151] Rsamtools_2.20.0            rngtools_1.5.2             
+[153] rlang_1.1.5                 crayon_1.5.3               
+[155] labeling_0.4.3              ps_1.9.0                   
+[157] getPass_0.2-4               fs_1.6.5                   
+[159] stringi_1.8.4               viridisLite_0.4.2          
+[161] BiocParallel_1.38.0         txdbmaker_1.0.1            
+[163] munsell_0.5.1               Biostrings_2.72.1          
+[165] lazyeval_0.2.2              devtools_2.4.5             
+[167] Matrix_1.7-0                hms_1.1.3                  
+[169] bit64_4.6.0-1               Rhdf5lib_1.26.0            
+[171] KEGGREST_1.44.1             statmod_1.5.0              
+[173] shiny_1.10.0                DRIMSeq_1.32.0             
+[175] SummarizedExperiment_1.34.0 AnnotationHub_3.12.0       
+[177] memoise_2.0.1               thematic_0.1.6             
+[179] bslib_0.9.0                 bit_4.6.0                  </code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -905,6 +1359,8 @@ footer is added to webpages before the MathJax javascript. -->
 
 
 
+</div>
+</div>
 
 </div>
 
@@ -937,6 +1393,35 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
