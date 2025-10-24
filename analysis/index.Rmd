@@ -8,7 +8,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-This website hosts code for the paper presenting optimized differential transcript usage (DTU) pipelines using the the R/Bioconductor packages [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) and [limma](https://bioconductor.org/packages/release/bioc/html/limma.html). 
+This website hosts code for the paper "Dividing out quantification uncertainty enables assessment of differential transcript usage with limma and edgeR" by Baldoni et al. (2025), which presents optimized differential transcript usage (DTU) pipelines using the the R/Bioconductor packages [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html) and [limma](https://bioconductor.org/packages/release/bioc/html/limma.html). 
+
+The bioRxiv preprint version of the paper can be accessed from https://doi.org/10.1101/2025.04.07.647659.
 
 The presented pipeline builds upon the latest developments of `edgeR` and `limma` with a unified interface via the `diffSplice` function. The pipelines make use of [divided counts](https://doi.org/10.1093/nar/gkad1167) to remove the RTA-induced dispersion and account for the sparsity from transcript-level counts. The new `diffSplice` pipelines provide greater power, improved efficiency, and improved FDR control compared to existing specialized DTU methods.
 
